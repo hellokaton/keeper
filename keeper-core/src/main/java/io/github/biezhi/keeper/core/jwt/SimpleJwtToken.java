@@ -40,7 +40,7 @@ public class SimpleJwtToken implements JwtToken {
      * <p>
      * Does not refresh by default, effective when the configuration refresh expires.
      *
-     * @see JwtConfig#setRefreshExpires(Duration)
+     * @see JwtConfig#setRenewExpires(Duration)
      */
     private static final String REFRESH_EXPIRES_AT = "rea";
 
@@ -69,11 +69,11 @@ public class SimpleJwtToken implements JwtToken {
                     .withIssuedAt(new Date())
                     .withExpiresAt(datePlus(config.getExpires().toMillis()));
 
-            if (null != config.getRefreshExpires() &&
-                    config.getRefreshExpires().toMillis() > 0) {
+            if (null != config.getRenewExpires() &&
+                    config.getRenewExpires().toMillis() > 0) {
 
                 builder.withClaim(REFRESH_EXPIRES_AT,
-                        datePlus(config.getRefreshExpires().toMillis()));
+                        datePlus(config.getRenewExpires().toMillis()));
             }
             return builder.sign(Algorithm.HMAC256(config.getSecret()));
         } catch (UnsupportedEncodingException e) {

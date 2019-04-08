@@ -1,4 +1,7 @@
 server:
   port: 9991
 
-
+keeper:
+  jwt:
+    expires: 30s
+    renewExpires: 7d

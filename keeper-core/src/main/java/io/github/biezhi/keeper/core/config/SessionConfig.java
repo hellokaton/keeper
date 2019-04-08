@@ -13,11 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.biezhi.keeper.core.web.filter;
+package io.github.biezhi.keeper.core.config;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.Data;
 
-@Slf4j
-public class JwtAuthenticFilter extends AuthenticFilter {
+import java.time.Duration;
+
+/**
+ * @author biezhi
+ * @date 2019-04-08
+ */
+@Data
+public class SessionConfig {
+
+    private String   cookieName = "kid";
+    private String   secret     = "keeper";
+    private Duration renewExpires;
 
 }

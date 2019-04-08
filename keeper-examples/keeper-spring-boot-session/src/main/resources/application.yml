@@ -3,3 +3,7 @@ server:
   servlet:
     session:
       timeout: 20s
+
+keeper:
+  session:
+    renewExpires: 7d

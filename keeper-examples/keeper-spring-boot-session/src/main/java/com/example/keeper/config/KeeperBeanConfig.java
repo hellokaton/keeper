@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 @Configuration
-public class AuhundBeanConfig {
+public class KeeperBeanConfig {
 
     @Bean
     public AuthenticFilter authenticFilter() {

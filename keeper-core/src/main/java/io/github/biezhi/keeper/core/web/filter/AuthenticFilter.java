@@ -17,6 +17,7 @@ package io.github.biezhi.keeper.core.web.filter;
 
 import io.github.biezhi.keeper.Keeper;
 import io.github.biezhi.keeper.core.subject.Subject;
+import io.github.biezhi.keeper.exception.ExpiredException;
 import io.github.biezhi.keeper.exception.UnauthorizedException;
 import io.github.biezhi.keeper.utils.WebUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -141,7 +142,15 @@ public class AuthenticFilter extends OncePerRequestFilter {
      * Processing logic when an authentication failure occurs abnormally
      */
     protected void authenticError(Exception e, HttpServletRequest request, HttpServletResponse response) {
-
+        if (e instanceof ExpiredException) {
+            Subject subject = Keeper.getSubject();
+            if (null == subject || !subject.renew()) {
+                this.unAuthentic(request, response);
+            }
+        } else {
+            log.error("authentic error", e);
+            this.unAuthentic(request, response);
+        }
     }
 
     /**

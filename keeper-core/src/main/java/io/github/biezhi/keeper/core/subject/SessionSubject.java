@@ -17,15 +17,22 @@ package io.github.biezhi.keeper.core.subject;
 
 import io.github.biezhi.keeper.Keeper;
 import io.github.biezhi.keeper.core.authc.AuthorToken;
+import io.github.biezhi.keeper.core.config.SessionConfig;
+import io.github.biezhi.keeper.exception.ExpiredException;
 import io.github.biezhi.keeper.utils.SpringContextUtil;
 import io.github.biezhi.keeper.utils.WebUtil;
 import io.github.biezhi.keeper.keeperConst;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 /**
+ * SessionSubject
+ *
  * @author biezhi
  * @date 2019-04-05
  */
@@ -37,22 +44,54 @@ public class SessionSubject extends SimpleSubject {
     public String login(AuthorToken token) {
         super.login(token);
         HttpSession session = WebUtil.currentSession(true);
-        if (null != session) {
-            session.setAttribute(keeperConst.KEEPER_SESSION_KEY, token);
-            Keeper keeper = SpringContextUtil.getBean(Keeper.class);
-            keeper.addSubject(session.getId(), this, null);
+        if (null == session) {
+            return null;
         }
-        return null;
+        session.setAttribute(keeperConst.KEEPER_SESSION_KEY, token);
+
+        SessionConfig config = SpringContextUtil.getBean(Keeper.class).getSessionConfig();
+        if (null != config.getRenewExpires() && config.getRenewExpires().toMillis() > 0) {
+            HttpServletResponse response = WebUtil.currentResponse();
+
+            String kidValue = "abcdefg" + config.getSecret();
+
+            Cookie cookie = new Cookie(config.getCookieName(), kidValue);
+            cookie.setMaxAge((int) config.getRenewExpires().toMillis() / 1000);
+            response.addCookie(cookie);
+        }
+
+        Keeper keeper = SpringContextUtil.getBean(Keeper.class);
+        keeper.addSubject(session.getId(), this, null);
+        return session.getId();
     }
 
     @Override
     public boolean isLogin() {
+        SessionConfig config = SpringContextUtil.getBean(Keeper.class).getSessionConfig();
+
         HttpSession session = WebUtil.currentSession();
-        return null != session && null != session.getAttribute(keeperConst.KEEPER_SESSION_KEY);
+        boolean     isLogin = null != session && null != session.getAttribute(keeperConst.KEEPER_SESSION_KEY);
+        if (!isLogin && config.getRenewExpires() != null) {
+            throw ExpiredException.build();
+        }
+        return isLogin;
     }
 
     @Override
     public boolean renew() {
+        SessionConfig      config  = SpringContextUtil.getBean(Keeper.class).getSessionConfig();
+        HttpServletRequest request = WebUtil.currentRequest();
+
+        String   kid     = "";
+        Cookie[] cookies = request.getCookies();
+        for (Cookie cookie : cookies) {
+            if (cookie.getName().equals(config.getCookieName())) {
+                kid = cookie.getValue();
+                break;
+            }
+        }
+        HttpSession session = WebUtil.currentSession();
+
         return false;
     }
 

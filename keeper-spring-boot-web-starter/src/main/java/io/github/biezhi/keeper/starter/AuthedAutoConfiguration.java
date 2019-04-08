@@ -8,6 +8,8 @@ import io.github.biezhi.keeper.core.jwt.SimpleJwtToken;
 import io.github.biezhi.keeper.enums.SubjectType;
 import io.github.biezhi.keeper.utils.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,6 +32,7 @@ public class AuthedAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnProperty(value = "keeper.jwt.expires")
     public JwtToken jwtToken() {
         return new SimpleJwtToken(keeperProperties.getJwt());
     }
@@ -39,6 +42,7 @@ public class AuthedAutoConfiguration {
         Keeper keeper = new Keeper();
         keeper.setAuthorization(authorization);
         keeper.setJwtConfig(keeperProperties.getJwt());
+        keeper.setSessionConfig(keeperProperties.getSession());
         // default subject type
         keeper.setSubjectType(SubjectType.SESSION);
         return keeper;

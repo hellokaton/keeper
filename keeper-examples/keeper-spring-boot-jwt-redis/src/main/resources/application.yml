@@ -9,4 +9,4 @@ spring:
 keeper:
   jwt:
     expires: 30s
-    refreshExpires: 7d
+    renewExpires: 7d

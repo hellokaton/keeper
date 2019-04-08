@@ -50,11 +50,11 @@ public class JwtConfig {
     private Duration expires = Duration.ofMinutes(10);
 
     /**
-     * The token can be refreshed at the latest,
+     * The token can be renew at the latest,
      * in which an expired token can be refreshed to generate a new token.
      * <p>
      * If the time is exceeded, re-authentication is required.
      */
-    private Duration refreshExpires;
+    private Duration renewExpires;
 
 }
