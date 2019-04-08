@@ -3,7 +3,7 @@ package com.example.keeper.config;
 import com.example.keeper.service.UserService;
 import io.github.biezhi.keeper.core.authc.*;
 import io.github.biezhi.keeper.core.cache.AuthorizeCache;
-import io.github.biezhi.keeper.core.cache.AuthorizeMapCache;
+import io.github.biezhi.keeper.core.cache.map.AuthorizeMapCache;
 import io.github.biezhi.keeper.exception.KeeperException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

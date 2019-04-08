@@ -34,6 +34,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * AuthenticFilter
+ *
+ * @author biezhi
+ * @date 2019-04-07
+ */
 @Slf4j
 public class AuthenticFilter extends OncePerRequestFilter {
 
@@ -90,7 +96,10 @@ public class AuthenticFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String lookupPath = request.getRequestURI();
+        // init web context
         WebUtil.initContext(request, response);
+
+        // Whether to skip the URI
         if (!this.matches(lookupPath, pathMatcher)) {
             this.doFilter(request, response, filterChain);
             WebUtil.removeRequest();
@@ -114,10 +123,10 @@ public class AuthenticFilter extends OncePerRequestFilter {
     }
 
     /**
-     * 是否允许访问
+     * Whether the authentication is passed,
+     * <p>
+     * return true when the user is logged in, continue the following process
      *
-     * @param request
-     * @param response
      * @return
      */
     protected boolean isAuthentic(HttpServletRequest request, HttpServletResponse response) {
@@ -128,15 +137,15 @@ public class AuthenticFilter extends OncePerRequestFilter {
         return subject.isLogin();
     }
 
+    /**
+     * Processing logic when an authentication failure occurs abnormally
+     */
     protected void authenticError(Exception e, HttpServletRequest request, HttpServletResponse response) {
 
     }
 
     /**
-     * 未登录时的处理
-     *
-     * @param request
-     * @param response
+     * Processing logic when not logged in or authentication failed
      */
     protected void unAuthentic(HttpServletRequest request, HttpServletResponse response) {
         throw UnauthorizedException.build();

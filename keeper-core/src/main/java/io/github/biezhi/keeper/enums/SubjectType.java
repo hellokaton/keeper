@@ -16,6 +16,8 @@
 package io.github.biezhi.keeper.enums;
 
 /**
+ * SubjectType
+ *
  * @author biezhi
  * @date 2019-04-05
  */

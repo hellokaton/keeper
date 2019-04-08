@@ -45,11 +45,6 @@ public class SimpleJwtToken implements JwtToken {
     private static final String REFRESH_EXPIRES_AT = "rea";
 
     /**
-     * invalid
-     */
-    private static final String INVALID = "inv";
-
-    /**
      * When the token is renewed, the request is guaranteed to be executed correctly,
      * and the new token is cached in the request attribute
      */
@@ -72,10 +67,13 @@ public class SimpleJwtToken implements JwtToken {
             JWTCreator.Builder builder = JWT.create()
                     .withSubject(username)
                     .withIssuedAt(new Date())
-                    .withExpiresAt(new Date(System.currentTimeMillis() + config.getExpires().toMillis()));
+                    .withExpiresAt(datePlus(config.getExpires().toMillis()));
 
-            if (null != config.getRefreshExpires()) {
-                builder.withClaim(REFRESH_EXPIRES_AT, new Date(System.currentTimeMillis() + config.getRefreshExpires().toMillis()));
+            if (null != config.getRefreshExpires() &&
+                    config.getRefreshExpires().toMillis() > 0) {
+
+                builder.withClaim(REFRESH_EXPIRES_AT,
+                        datePlus(config.getRefreshExpires().toMillis()));
             }
             return builder.sign(Algorithm.HMAC256(config.getSecret()));
         } catch (UnsupportedEncodingException e) {
@@ -94,32 +92,14 @@ public class SimpleJwtToken implements JwtToken {
     }
 
     @Override
-    public boolean validate(String token) {
-        try {
-            DecodedJWT jwt = parseToken(token).orElse(null);
-            if (null == jwt) {
-                return false;
-            }
-            Claim claim = jwt.getClaim(INVALID);
-            if (null != claim) {
-                return false;
-            }
-            if (isExpired(token)) {
-                return canRefresh(token);
-            }
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    @Override
     public boolean isExpired(String token) {
         Date now = Calendar.getInstance().getTime();
 
         Date expiresAt = this.parseToken(token)
                 .map(DecodedJWT::getExpiresAt)
-                .orElseThrow(() -> new KeeperException("Invalid token type, missing expires_at claim"));
+                .orElseThrow(() ->
+                        new KeeperException("Invalid token type, missing expires_at claim")
+                );
 
         return expiresAt.before(now);
     }
@@ -157,7 +137,7 @@ public class SimpleJwtToken implements JwtToken {
 
     @Override
     public String refresh(String username) {
-        HttpServletRequest request = WebUtil.currentRequest();
+        HttpServletRequest  request  = WebUtil.currentRequest();
         HttpServletResponse response = WebUtil.currentResponse();
 
         if (null == request || null == response) {
@@ -168,6 +148,10 @@ public class SimpleJwtToken implements JwtToken {
         request.setAttribute(NEW_TOKEN, token);
         response.setHeader(config.getHeader(), token);
         return token;
+    }
+
+    private Date datePlus(long millis) {
+        return new Date(System.currentTimeMillis() + millis);
     }
 
     private Optional<DecodedJWT> parseToken(String token) {

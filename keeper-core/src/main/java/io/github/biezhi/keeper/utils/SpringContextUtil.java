@@ -20,6 +20,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
 /**
+ * SpringContextUtil
+ *
  * @author biezhi
  * @date 2019-04-05
  */

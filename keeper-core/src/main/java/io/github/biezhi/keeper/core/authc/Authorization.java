@@ -19,12 +19,31 @@ import io.github.biezhi.keeper.core.cache.AuthorizeCache;
 import io.github.biezhi.keeper.exception.KeeperException;
 
 /**
- * 授权
+ * Authorization interface
+ * <p>
+ * Implement the interface when it needs to implement authorization
+ * and host it in the Spring container.
+ *
+ * @author biezhi
+ * @date 2019-04-08
  */
 public interface Authorization {
 
+    /**
+     * Load user authorization information, including roles and permissions sets.
+     *
+     * @param token the authenticated user token identifier, mainly username
+     * @return Authorization information {@link SimpleAuthorizeInfo}
+     * @throws KeeperException
+     */
     AuthorizeInfo loadAuthorization(AuthorToken token) throws KeeperException;
 
+    /**
+     * Load authorization information from the cache,
+     * loaded by default from {@link Authorization#loadAuthorization(AuthorToken)}
+     *
+     * @return Authorization information {@link SimpleAuthorizeInfo}
+     */
     default AuthorizeCache loadWithCache() {
         return null;
     }

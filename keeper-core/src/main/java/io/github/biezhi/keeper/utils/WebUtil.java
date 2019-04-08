@@ -15,7 +15,6 @@
  */
 package io.github.biezhi.keeper.utils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,16 +22,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.Objects;
 
 /**
+ * WebUtil
+ *
  * @author biezhi
  * @date 2019-04-04
  */
 @Slf4j
 @UtilityClass
 public class WebUtil {
-
-    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private static final ThreadLocal<HttpServletRequest>  REQUEST_THREAD_LOCAL  = new ThreadLocal<>();
     private static final ThreadLocal<HttpServletResponse> RESPONSE_THREAD_LOCAL = new ThreadLocal<>();
@@ -67,7 +67,7 @@ public class WebUtil {
     public void writeJSON(HttpServletResponse response, Object data) {
         try {
             response.setContentType("application/json; charset=UTF-8");
-            response.getWriter().write(MAPPER.writeValueAsString(data));
+            response.getWriter().write(Objects.requireNonNull(JsonUtil.toJSONString(data)));
             response.getWriter().flush();
         } catch (IOException e) {
             log.error("Write to response error", e);

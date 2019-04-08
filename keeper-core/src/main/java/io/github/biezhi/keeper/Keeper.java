@@ -17,7 +17,7 @@ package io.github.biezhi.keeper;
 
 import io.github.biezhi.keeper.core.authc.Authorization;
 import io.github.biezhi.keeper.core.cache.Cache;
-import io.github.biezhi.keeper.core.cache.MapCache;
+import io.github.biezhi.keeper.core.cache.map.MapCache;
 import io.github.biezhi.keeper.core.config.JwtConfig;
 import io.github.biezhi.keeper.core.jwt.JwtToken;
 import io.github.biezhi.keeper.core.subject.JwtSubject;

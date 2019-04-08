@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.biezhi.keeper.core.cache;
+package io.github.biezhi.keeper.core.cache.map;
 
 import io.github.biezhi.keeper.core.authc.AuthorizeInfo;
+import io.github.biezhi.keeper.core.cache.AuthorizeCache;
 
 /**
  * @author biezhi
@@ -25,14 +26,14 @@ public class AuthorizeMapCache extends MapCache<String, AuthorizeInfo> implement
 
     @Override
     public AuthorizeInfo getAuthorizeInfo(String username) {
-        if (exists(username)) {
+        if (cached(username)) {
             return super.get(username);
         }
         return null;
     }
 
     @Override
-    public boolean exists(String username) {
+    public boolean cached(String username) {
         return super.exists(username);
     }
 
@@ -42,12 +43,13 @@ public class AuthorizeMapCache extends MapCache<String, AuthorizeInfo> implement
     }
 
     @Override
-    public void clearAll() {
+    public void clear() {
         super.clear();
     }
 
     @Override
     public void put(String username, AuthorizeInfo authorizeInfo) {
+        super.remove(username);
         super.put(username, authorizeInfo);
     }
 

@@ -17,10 +17,25 @@ package io.github.biezhi.keeper.core.authc;
 
 import java.util.Set;
 
+/**
+ * AuthorizeInfo interface
+ * <p>
+ * Define the selection of user authorization information,
+ * including role information and permission information.
+ *
+ * @author biezhi
+ * @date 2019-04-08
+ */
 public interface AuthorizeInfo {
 
+    /**
+     * @return a list of roles owned by the user, stored as a string
+     */
     Set<String> getRoles();
 
+    /**
+     * @return a list of permissions owned by the user, stored as a string
+     */
     Set<String> getPermissions();
 
 }

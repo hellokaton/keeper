@@ -54,7 +54,7 @@ public class KeeperAspect {
     public void beforePermissions(JoinPoint joinPoint) {
         Authorization authorization = keeper.getAuthorization();
         if (null == authorization) {
-            throw new UnauthorizedException("无法授权");
+            throw new UnauthorizedException("Unauthorized");
         }
 
         Subject subject = Keeper.getSubject();
@@ -65,13 +65,17 @@ public class KeeperAspect {
         int hash = 0;
         if (keeper.enableURIAuthorizeCache()) {
             HttpServletRequest request = WebUtil.currentRequest();
-            hash = Objects.hash(subject.username(), request.getMethod(), request.getRequestURI());
+
+            hash = Objects.hash(
+                    subject.username(),
+                    request.getMethod(),
+                    request.getRequestURI());
+
             if (SUBJECT_PERMISSION_CACHE.containsKey(subject) &&
                     SUBJECT_PERMISSION_CACHE.get(subject).equals(hash)) {
                 return;
             }
         }
-
 
         Method method = ((MethodSignature) joinPoint.getSignature()).getMethod();
 

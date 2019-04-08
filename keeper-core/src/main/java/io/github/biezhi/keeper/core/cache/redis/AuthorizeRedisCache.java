@@ -52,14 +52,14 @@ public class AuthorizeRedisCache extends RedisCache<AuthorizeInfo> implements Au
 
     @Override
     public AuthorizeInfo getAuthorizeInfo(String username) {
-        if (exists(username)) {
+        if (cached(username)) {
             return this.get(username);
         }
         return null;
     }
 
     @Override
-    public boolean exists(String username) {
+    public boolean cached(String username) {
         return super.exists(username);
     }
 
@@ -69,7 +69,7 @@ public class AuthorizeRedisCache extends RedisCache<AuthorizeInfo> implements Au
     }
 
     @Override
-    public void clearAll() {
+    public void clear() {
         super.clear();
     }
 

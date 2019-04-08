@@ -20,16 +20,41 @@ import lombok.Data;
 import java.time.Duration;
 
 /**
+ * jwt configuration
+ *
  * @author biezhi
  * @date 2019-04-05
  */
 @Data
 public class JwtConfig {
 
+    /**
+     * Read the token field from the Http Header
+     */
     private String header = "Authorization";
+
+    /**
+     * token prefix，@link{https://jwt.io/introduction/}
+     */
     private String tokenHead = "Bearer ";
+
+    /**
+     * The secret when jwt is signed, be sure to configure, do not leak
+     */
     private String secret = "keeper";
+
+    /**
+     * The generated token is valid.
+     * If the refresh time is not set after expiration, you need to log in again.
+     */
     private Duration expires = Duration.ofMinutes(10);
+
+    /**
+     * The token can be refreshed at the latest,
+     * in which an expired token can be refreshed to generate a new token.
+     * <p>
+     * If the time is exceeded, re-authentication is required.
+     */
     private Duration refreshExpires;
 
 }

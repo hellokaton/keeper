@@ -134,7 +134,7 @@ public abstract class SimpleSubject implements Subject {
         if (reload) {
             cache.remove(username);
         }
-        if (!cache.exists(username)) {
+        if (!cache.cached(username)) {
             AuthorizeInfo authorizeInfo = authorization.loadAuthorization(token);
             if (null != authorizeInfo) {
                 cache.put(username, authorizeInfo);

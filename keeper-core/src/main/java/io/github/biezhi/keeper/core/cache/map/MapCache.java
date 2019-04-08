@@ -1,4 +1,6 @@
-package io.github.biezhi.keeper.core.cache;
+package io.github.biezhi.keeper.core.cache.map;
+
+import io.github.biezhi.keeper.core.cache.Cache;
 
 import java.time.Duration;
 import java.util.Map;

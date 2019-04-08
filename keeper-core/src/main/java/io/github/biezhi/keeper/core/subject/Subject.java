@@ -51,10 +51,25 @@ public interface Subject {
      */
     void refreshAuthorize();
 
+    /**
+     * @return return the login status of the current user
+     */
     boolean isLogin();
 
+    /**
+     * Token renewal
+     *
+     * @return
+     */
     boolean renew();
 
+    /**
+     * Determine if the user has execute permission
+     *
+     * @param roles       roles currently allowed to execute
+     * @param permissions permissions currently allowed to access
+     * @return return whether the current user has permission to execute
+     */
     boolean hasPermissions(Roles roles, Permissions permissions);
 
 }

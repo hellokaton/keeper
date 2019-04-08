@@ -34,13 +34,6 @@ public interface JwtToken {
     String getUsername(String token);
 
     /**
-     * Verify that the incoming token is a valid JWT token
-     *
-     * @param token jwt token
-     */
-    boolean validate(String token);
-
-    /**
      * Verify that the incoming token has expired
      *
      * @param token jwt token
