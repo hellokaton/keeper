@@ -15,6 +15,7 @@
  */
 package io.github.biezhi.keeper.core.authc;
 
+import io.github.biezhi.keeper.core.authc.impl.SimpleAuthorizeInfo;
 import io.github.biezhi.keeper.core.cache.AuthorizeCache;
 import io.github.biezhi.keeper.exception.KeeperException;
 
@@ -36,11 +37,11 @@ public interface Authorization {
      * @return Authorization information {@link SimpleAuthorizeInfo}
      * @throws KeeperException
      */
-    AuthorizeInfo loadAuthorization(AuthorToken token) throws KeeperException;
+    AuthorizeInfo doAuthorization(AuthorToken token) throws KeeperException;
 
     /**
      * Load authorization information from the cache,
-     * loaded by default from {@link Authorization#loadAuthorization(AuthorToken)}
+     * loaded by default from {@link Authorization#doAuthorization(AuthorToken)}
      *
      * @return Authorization information {@link SimpleAuthorizeInfo}
      */

@@ -16,7 +16,7 @@
 package io.github.biezhi.keeper.core.cache.redis;
 
 import io.github.biezhi.keeper.core.authc.AuthorizeInfo;
-import io.github.biezhi.keeper.core.authc.SimpleAuthorizeInfo;
+import io.github.biezhi.keeper.core.authc.impl.SimpleAuthorizeInfo;
 import io.github.biezhi.keeper.core.cache.AuthorizeCache;
 import io.github.biezhi.keeper.utils.JsonUtil;
 import org.springframework.data.redis.core.StringRedisTemplate;

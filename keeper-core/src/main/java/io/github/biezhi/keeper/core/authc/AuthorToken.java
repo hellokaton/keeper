@@ -15,8 +15,6 @@
  */
 package io.github.biezhi.keeper.core.authc;
 
-import java.util.Map;
-
 /**
  * AuthorToken
  * <p>
@@ -34,21 +32,7 @@ public interface AuthorToken {
      */
     String username();
 
-    /**
-     * Payload information when logging in, optional
-     *
-     * @return payload
-     */
-    default Object payload() {
-        return null;
-    }
-
-    /**
-     * Context information to be stored when logging in, optional
-     *
-     * @return claims
-     */
-    default Map<String, Object> claims() {
+    default String password() {
         return null;
     }
 

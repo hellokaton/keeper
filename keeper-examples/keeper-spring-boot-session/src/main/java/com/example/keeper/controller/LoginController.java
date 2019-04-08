@@ -1,12 +1,9 @@
 package com.example.keeper.controller;
 
 import com.example.keeper.model.Response;
-import com.example.keeper.model.User;
-import com.example.keeper.service.UserService;
 import io.github.biezhi.keeper.Keeper;
-import io.github.biezhi.keeper.core.authc.Tokens;
+import io.github.biezhi.keeper.core.authc.impl.Tokens;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,19 +14,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping
 public class LoginController {
 
-    @Autowired
-    private UserService userService;
-
     @PostMapping("/login")
     public Response<String> login(String username, String password) {
-        User user = userService.login(username, password);
 
-        String sessionId = Keeper.getSubject().login(
+        Keeper.getSubject().login(
                 Tokens.create(username)
-                        .payload(user)
+                        .password(password)
                         .build());
-
-        log.info("session id: {}", sessionId);
 
         return Response.<String>builder().code(200).data("登录成功").build();
     }

@@ -17,30 +17,21 @@ package io.github.biezhi.keeper.core.subject;
 
 import io.github.biezhi.keeper.annotation.Permissions;
 import io.github.biezhi.keeper.annotation.Roles;
+import io.github.biezhi.keeper.core.authc.AuthenticInfo;
 import io.github.biezhi.keeper.core.authc.AuthorToken;
-import io.github.biezhi.keeper.core.authc.SimpleToken;
 
 /**
- * 续期
- * 续约
- *
  * @author biezhi
  * @date 2019-04-05
  */
 public interface Subject {
 
     /**
-     * @return returns the unique identity of the user currently logged in,
-     * or NULL if the user is not logged in
-     */
-    String username();
-
-    /**
      * @return returns the current login information
      */
-    SimpleToken token();
+    AuthenticInfo authenticInfo();
 
-    String login(AuthorToken token);
+    AuthenticInfo login(AuthorToken token);
 
     void logout();
 

@@ -20,6 +20,8 @@ import io.github.biezhi.keeper.Keeper;
 import io.github.biezhi.keeper.annotation.Permissions;
 import io.github.biezhi.keeper.annotation.Roles;
 import io.github.biezhi.keeper.core.authc.*;
+import io.github.biezhi.keeper.core.authc.impl.SimpleToken;
+import io.github.biezhi.keeper.core.authc.impl.Tokens;
 import io.github.biezhi.keeper.core.cache.AuthorizeCache;
 import io.github.biezhi.keeper.enums.Logical;
 import io.github.biezhi.keeper.utils.SpringContextUtil;
@@ -48,24 +50,14 @@ public abstract class SimpleSubject implements Subject {
      */
     protected Boolean isLogin = Boolean.FALSE;
 
-    @JsonIgnore
     @Override
-    public String username() {
-        if (null == token) {
-            return null;
-        }
-        return this.token.username();
+    public AuthenticInfo authenticInfo() {
+        return null;
     }
 
     @JsonIgnore
     @Override
-    public SimpleToken token() {
-        return token;
-    }
-
-    @JsonIgnore
-    @Override
-    public String login(AuthorToken token) {
+    public AuthenticInfo login(AuthorToken token) {
         this.token = Tokens.build(token);
         this.token.setLoginTime(Instant.now().getEpochSecond());
         this.isLogin = true;
@@ -128,14 +120,14 @@ public abstract class SimpleSubject implements Subject {
         String username = token.username();
         AuthorizeCache cache = authorization.loadWithCache();
         if (cache == null) {
-            return authorization.loadAuthorization(token);
+            return authorization.doAuthorization(token);
         }
 
         if (reload) {
             cache.remove(username);
         }
         if (!cache.cached(username)) {
-            AuthorizeInfo authorizeInfo = authorization.loadAuthorization(token);
+            AuthorizeInfo authorizeInfo = authorization.doAuthorization(token);
             if (null != authorizeInfo) {
                 cache.put(username, authorizeInfo);
             }

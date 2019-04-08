@@ -16,6 +16,7 @@
 package io.github.biezhi.keeper.core.cache;
 
 import io.github.biezhi.keeper.core.authc.AuthorizeInfo;
+import io.github.biezhi.keeper.core.authc.impl.SimpleAuthorizeInfo;
 
 /**
  * AuthorizeCache
@@ -31,7 +32,7 @@ public interface AuthorizeCache {
      * Obtain the authorization information of the user from the cache according to the username
      *
      * @param username user unique identifier
-     * @return {@link io.github.biezhi.keeper.core.authc.SimpleAuthorizeInfo}
+     * @return {@link SimpleAuthorizeInfo}
      */
     AuthorizeInfo getAuthorizeInfo(String username);
 

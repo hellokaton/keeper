@@ -17,6 +17,13 @@ public class UserService {
         return user;
     }
 
+    public User findByUsername(String username) {
+        User user = new User();
+        user.setUsername(username);
+        user.setPassword("123456");
+        return user;
+    }
+
     public Set<String> findRoles(String username) {
         return new HashSet<>(Arrays.asList("admin"));
     }

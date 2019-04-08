@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.biezhi.keeper.core.authc;
+package io.github.biezhi.keeper.core.authc.impl;
 
+import io.github.biezhi.keeper.core.authc.AuthorToken;
 import lombok.experimental.UtilityClass;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Tokens
@@ -40,46 +38,23 @@ public class Tokens {
     public static SimpleToken build(AuthorToken authorToken) {
         SimpleToken simpleToken = new SimpleToken();
         simpleToken.setUsername(authorToken.username());
-        simpleToken.setPayload(authorToken.payload());
-        simpleToken.setClaims((authorToken.claims()));
+        simpleToken.setPassword((authorToken.password()));
         return simpleToken;
     }
 
     public static class AuthorTokenBuilder {
         String username;
-        Object payload;
-        int    rememberSeconds;
+        String password;
 
-        Map<String, Object> claims;
-
-        public AuthorTokenBuilder rememberMe(int rememberSeconds) {
-            this.rememberSeconds = rememberSeconds;
-            return this;
-        }
-
-        public AuthorTokenBuilder payload(Object payload) {
-            this.payload = payload;
-            return this;
-        }
-
-        public AuthorTokenBuilder withClaims(Map<String, Object> claims) {
-            this.claims = claims;
-            return this;
-        }
-
-        public AuthorTokenBuilder withClaim(String key, Object value) {
-            if (null == claims) {
-                claims = new HashMap<>();
-            }
-            claims.putIfAbsent(key, value);
+        public AuthorTokenBuilder password(String password) {
+            this.password = password;
             return this;
         }
 
         public AuthorToken build() {
             SimpleToken simpleToken = new SimpleToken();
             simpleToken.setUsername(username);
-            simpleToken.setPayload(payload);
-            simpleToken.setClaims(claims);
+            simpleToken.setPassword(password);
             return simpleToken;
         }
 

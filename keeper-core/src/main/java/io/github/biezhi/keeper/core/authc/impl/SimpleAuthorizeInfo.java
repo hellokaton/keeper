@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.biezhi.keeper.core.authc;
+package io.github.biezhi.keeper.core.authc.impl;
 
+import io.github.biezhi.keeper.core.authc.AuthorizeInfo;
 import lombok.Data;
 
 import java.util.Set;

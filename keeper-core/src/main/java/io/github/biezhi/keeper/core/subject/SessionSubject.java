@@ -16,9 +16,12 @@
 package io.github.biezhi.keeper.core.subject;
 
 import io.github.biezhi.keeper.Keeper;
+import io.github.biezhi.keeper.core.authc.AuthenticInfo;
+import io.github.biezhi.keeper.core.authc.Authentication;
 import io.github.biezhi.keeper.core.authc.AuthorToken;
 import io.github.biezhi.keeper.core.config.SessionConfig;
 import io.github.biezhi.keeper.exception.ExpiredException;
+import io.github.biezhi.keeper.exception.UnauthenticException;
 import io.github.biezhi.keeper.utils.SpringContextUtil;
 import io.github.biezhi.keeper.utils.WebUtil;
 import io.github.biezhi.keeper.keeperConst;
@@ -41,14 +44,24 @@ import javax.servlet.http.HttpSession;
 public class SessionSubject extends SimpleSubject {
 
     @Override
-    public String login(AuthorToken token) {
+    public AuthenticInfo login(AuthorToken token) {
         super.login(token);
         HttpSession session = WebUtil.currentSession(true);
         if (null == session) {
             return null;
         }
-        session.setAttribute(keeperConst.KEEPER_SESSION_KEY, token);
 
+        Authentication authentication = SpringContextUtil.getBean(Authentication.class);
+        AuthenticInfo  authenticInfo  = authentication.doAuthentic(token);
+
+        // 只有登录的时候验证密码
+        if (!authenticInfo.password().equals(token.password())) {
+            throw UnauthenticException.build();
+        } else {
+            session.setAttribute(keeperConst.KEEPER_SESSION_KEY, authenticInfo);
+        }
+
+        // remember me TODO
         SessionConfig config = SpringContextUtil.getBean(Keeper.class).getSessionConfig();
         if (null != config.getRenewExpires() && config.getRenewExpires().toMillis() > 0) {
             HttpServletResponse response = WebUtil.currentResponse();
@@ -62,7 +75,7 @@ public class SessionSubject extends SimpleSubject {
 
         Keeper keeper = SpringContextUtil.getBean(Keeper.class);
         keeper.addSubject(session.getId(), this, null);
-        return session.getId();
+        return authenticInfo;
     }
 
     @Override
@@ -90,9 +103,16 @@ public class SessionSubject extends SimpleSubject {
                 break;
             }
         }
-        HttpSession session = WebUtil.currentSession();
 
-        return false;
+        Authentication authentication = SpringContextUtil.getBean(Authentication.class);
+
+        String kidValue = kid;
+
+        AuthenticInfo authenticInfo = authentication.doAuthentic(() -> kidValue);
+
+        HttpSession session = WebUtil.currentSession();
+        session.setAttribute(keeperConst.KEEPER_SESSION_KEY, authenticInfo);
+        return true;
     }
 
     @Override

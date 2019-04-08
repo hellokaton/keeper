@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.biezhi.keeper.core.authc;
+package io.github.biezhi.keeper.core.authc.impl;
 
+import io.github.biezhi.keeper.core.authc.AuthorToken;
 import lombok.Data;
-
-import java.util.Map;
 
 @Data
 public class SimpleToken implements AuthorToken {
 
     private long loginTime;
 
-    private String username;
-    private Object payload;
-    private Map<String, Object> claims;
+    private String              username;
+    private String              password;
 
     @Override
     public String username() {
@@ -34,13 +32,8 @@ public class SimpleToken implements AuthorToken {
     }
 
     @Override
-    public Object payload() {
-        return this.payload;
-    }
-
-    @Override
-    public Map<String, Object> claims() {
-        return this.claims;
+    public String password() {
+        return password;
     }
 
 }

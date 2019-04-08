@@ -18,7 +18,9 @@ package io.github.biezhi.keeper.core.subject;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.github.biezhi.keeper.Keeper;
+import io.github.biezhi.keeper.core.authc.AuthenticInfo;
 import io.github.biezhi.keeper.core.authc.AuthorToken;
+import io.github.biezhi.keeper.core.authc.impl.SimpleAuthenticInfo;
 import io.github.biezhi.keeper.core.jwt.JwtToken;
 import io.github.biezhi.keeper.exception.ExpiredException;
 import io.github.biezhi.keeper.utils.SpringContextUtil;
@@ -36,12 +38,16 @@ public class JwtSubject extends SimpleSubject {
 
     @JsonIgnore
     @Override
-    public String login(AuthorToken token) {
+    public AuthenticInfo login(AuthorToken token) {
         super.login(token);
 
         Keeper keeper = SpringContextUtil.getBean(Keeper.class);
         keeper.addSubject(token.username(), this, null);
-        return jwtToken().create(token.username());
+        String jwtToken = jwtToken().create(token.username());
+
+        SimpleAuthenticInfo authenticInfo = new SimpleAuthenticInfo();
+        authenticInfo.setPayload(jwtToken);
+        return authenticInfo;
     }
 
     @JsonIgnore
@@ -50,7 +56,7 @@ public class JwtSubject extends SimpleSubject {
         super.logout();
 
         String authToken = jwtToken().getAuthToken();
-        String username = jwtToken().getUsername(authToken);
+        String username  = jwtToken().getUsername(authToken);
         if (null == username) {
             return;
         }
@@ -67,7 +73,7 @@ public class JwtSubject extends SimpleSubject {
         }
 
         String username = jwtToken().getUsername(token);
-        Keeper keeper = SpringContextUtil.getBean(Keeper.class);
+        Keeper keeper   = SpringContextUtil.getBean(Keeper.class);
 
         if (!keeper.existsSubject(username)) {
             return false;
@@ -86,7 +92,7 @@ public class JwtSubject extends SimpleSubject {
         if (null == token) {
             return false;
         }
-        String username = jwtToken().getUsername(token);
+        String  username   = jwtToken().getUsername(token);
         boolean canRefresh = jwtToken().canRefresh(token);
         if (canRefresh) {
             String newToken = jwtToken().refresh(username);

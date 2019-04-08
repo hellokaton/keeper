@@ -18,6 +18,7 @@ package io.github.biezhi.keeper.core.aspect;
 import io.github.biezhi.keeper.Keeper;
 import io.github.biezhi.keeper.annotation.Permissions;
 import io.github.biezhi.keeper.annotation.Roles;
+import io.github.biezhi.keeper.core.authc.AuthenticInfo;
 import io.github.biezhi.keeper.core.authc.Authorization;
 import io.github.biezhi.keeper.core.subject.Subject;
 import io.github.biezhi.keeper.exception.UnauthenticException;
@@ -66,8 +67,10 @@ public class KeeperAspect {
         if (keeper.enableURIAuthorizeCache()) {
             HttpServletRequest request = WebUtil.currentRequest();
 
+            AuthenticInfo authenticInfo = subject.authenticInfo();
+
             hash = Objects.hash(
-                    subject.username(),
+                    authenticInfo.username(),
                     request.getMethod(),
                     request.getRequestURI());
 

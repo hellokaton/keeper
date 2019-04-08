@@ -1,10 +1,10 @@
 package com.example.keeper.config;
 
+import com.example.keeper.model.User;
 import com.example.keeper.service.UserService;
-import io.github.biezhi.keeper.core.authc.AuthorToken;
-import io.github.biezhi.keeper.core.authc.Authorization;
-import io.github.biezhi.keeper.core.authc.AuthorizeInfo;
-import io.github.biezhi.keeper.core.authc.SimpleAuthorizeInfo;
+import io.github.biezhi.keeper.core.authc.*;
+import io.github.biezhi.keeper.core.authc.impl.SimpleAuthenticInfo;
+import io.github.biezhi.keeper.core.authc.impl.SimpleAuthorizeInfo;
 import io.github.biezhi.keeper.exception.KeeperException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -12,13 +12,23 @@ import org.springframework.stereotype.Component;
 import java.util.Set;
 
 @Component
-public class AuthorizationBean implements Authorization {
+public class AuthorizationBean implements Authentication, Authorization {
 
     @Autowired
     private UserService userService;
 
     @Override
-    public AuthorizeInfo loadAuthorization(AuthorToken token) throws KeeperException {
+    public AuthenticInfo doAuthentic(AuthorToken token) throws KeeperException {
+        User user = userService.findByUsername(token.username());
+
+        SimpleAuthenticInfo authenticInfo = new SimpleAuthenticInfo();
+        authenticInfo.setUsername(token.username());
+        authenticInfo.setPayload(user);
+        return authenticInfo;
+    }
+
+    @Override
+    public AuthorizeInfo doAuthorization(AuthorToken token) throws KeeperException {
         String username = token.username();
 
         Set<String> roles       = userService.findRoles(username);
