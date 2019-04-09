@@ -33,15 +33,15 @@ public interface Authorization {
     /**
      * Load user authorization information, including roles and permissions sets.
      *
-     * @param token the authenticated user token identifier, mainly username
+     * @param authenticInfo the authenticated user token identifier, mainly username
      * @return Authorization information {@link SimpleAuthorizeInfo}
      * @throws KeeperException
      */
-    AuthorizeInfo doAuthorization(AuthorToken token) throws KeeperException;
+    AuthorizeInfo doAuthorization(AuthenticInfo authenticInfo) throws KeeperException;
 
     /**
      * Load authorization information from the cache,
-     * loaded by default from {@link Authorization#doAuthorization(AuthorToken)}
+     * loaded by default from {@link Authorization#doAuthorization(AuthenticInfo)}
      *
      * @return Authorization information {@link SimpleAuthorizeInfo}
      */

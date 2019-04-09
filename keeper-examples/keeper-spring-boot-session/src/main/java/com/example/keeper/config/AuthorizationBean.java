@@ -35,7 +35,7 @@ public class AuthorizationBean implements Authentication, Authorization {
     }
 
     @Override
-    public AuthorizeInfo doAuthorization(AuthorToken token) throws KeeperException {
+    public AuthorizeInfo doAuthorization(AuthenticInfo token) throws KeeperException {
         String username = token.username();
 
         Set<String> roles       = userService.findRoles(username);

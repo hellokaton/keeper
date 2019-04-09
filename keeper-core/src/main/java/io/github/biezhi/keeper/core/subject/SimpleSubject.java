@@ -39,8 +39,6 @@ import java.util.Set;
 @Data
 public abstract class SimpleSubject implements Subject {
 
-    protected SimpleAuthorToken token;
-
     /**
      * Identifies the current user's logon status,
      * which is modified only when logon and logout are invoked.
@@ -58,8 +56,6 @@ public abstract class SimpleSubject implements Subject {
     @JsonIgnore
     @Override
     public AuthenticInfo login(AuthorToken token) {
-        this.token = Tokens.build(token);
-        this.token.setLoginTime(Instant.now().getEpochSecond());
         this.isLogin = true;
         return null;
     }
@@ -67,7 +63,6 @@ public abstract class SimpleSubject implements Subject {
     @JsonIgnore
     @Override
     public void logout() {
-        this.token = null;
         this.isLogin = false;
     }
 
@@ -117,17 +112,17 @@ public abstract class SimpleSubject implements Subject {
 
     protected AuthorizeInfo authorize(boolean reload) {
         Authorization authorization = SpringContextUtil.getBean(Keeper.class).getAuthorization();
-        String username = token.username();
+        String username = authenticInfo().username();
         AuthorizeCache cache = authorization.loadWithCache();
         if (cache == null) {
-            return authorization.doAuthorization(token);
+            return authorization.doAuthorization(authenticInfo());
         }
 
         if (reload) {
             cache.remove(username);
         }
         if (!cache.cached(username)) {
-            AuthorizeInfo authorizeInfo = authorization.doAuthorization(token);
+            AuthorizeInfo authorizeInfo = authorization.doAuthorization(authenticInfo());
             if (null != authorizeInfo) {
                 cache.put(username, authorizeInfo);
             }

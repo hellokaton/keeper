@@ -18,6 +18,7 @@ package io.github.biezhi.keeper.core.subject;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTCreator;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import io.github.biezhi.keeper.Keeper;
 import io.github.biezhi.keeper.core.authc.AuthenticInfo;
 import io.github.biezhi.keeper.core.authc.Authentication;
@@ -81,12 +82,14 @@ public class SessionSubject extends SimpleSubject {
             response.addCookie(cookie);
         }
 
+        this.isLogin = true;
+
         return authenticInfo;
     }
 
     @Override
     public boolean isLogin() {
-        SessionConfig config = SpringContextUtil.getBean(Keeper.class).getSessionConfig();
+        SessionConfig config = sessionConfig();
 
         HttpSession session = WebUtil.currentSession();
         boolean     isLogin = null != session && null != session.getAttribute(keeperConst.KEEPER_SESSION_KEY);
@@ -100,6 +103,7 @@ public class SessionSubject extends SimpleSubject {
     public boolean renew() {
         SessionConfig      config  = sessionConfig();
         HttpServletRequest request = WebUtil.currentRequest();
+        HttpSession        session = WebUtil.currentSession();
 
         String   kid     = "";
         Cookie[] cookies = request.getCookies();
@@ -112,11 +116,11 @@ public class SessionSubject extends SimpleSubject {
 
         Authentication authentication = SpringContextUtil.getBean(Authentication.class);
 
-        String kidValue = kid;
+        DecodedJWT decode   = JWT.decode(kid);
+        String     username = decode.getSubject();
 
-        AuthenticInfo authenticInfo = authentication.doAuthentic(() -> kidValue);
+        AuthenticInfo authenticInfo = authentication.doAuthentic(() -> username);
 
-        HttpSession session = WebUtil.currentSession();
         session.setAttribute(keeperConst.KEEPER_SESSION_KEY, authenticInfo);
         return true;
     }
@@ -125,12 +129,13 @@ public class SessionSubject extends SimpleSubject {
     public void logout() {
         super.logout();
         HttpSession session = WebUtil.currentSession();
-        if (null != session) {
-            session.removeAttribute(keeperConst.KEEPER_SESSION_KEY);
-
-            Keeper keeper = SpringContextUtil.getBean(Keeper.class);
-            keeper.removeSubject(session.getId());
+        if (null == session) {
+            return;
         }
+        session.removeAttribute(keeperConst.KEEPER_SESSION_KEY);
+
+        Keeper keeper = SpringContextUtil.getBean(Keeper.class);
+        keeper.removeSubject(session.getId());
     }
 
     private SessionConfig sessionConfig() {
