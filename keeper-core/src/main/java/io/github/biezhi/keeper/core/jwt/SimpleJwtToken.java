@@ -103,7 +103,7 @@ public class SimpleJwtToken implements JwtToken {
             return true;
         }
 
-        String sign = token.substring(token.lastIndexOf("."));
+        String sign = token.substring(token.lastIndexOf(".") + 1);
         String key = String.format(LOGOUT_KEY, sign);
         if (logoutCache().exists(key)) {
             return true;
@@ -125,7 +125,7 @@ public class SimpleJwtToken implements JwtToken {
             return false;
         }
 
-        String sign = token.substring(token.lastIndexOf("."));
+        String sign = token.substring(token.lastIndexOf(".") + 1);
         String key = String.format(LOGOUT_KEY, sign);
         if (logoutCache().exists(key)) {
             return false;

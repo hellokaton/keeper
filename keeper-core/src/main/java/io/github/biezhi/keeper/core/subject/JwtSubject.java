@@ -84,14 +84,14 @@ public class JwtSubject extends SimpleSubject {
     @JsonIgnore
     @Override
     public void logout() {
-        String authToken = jwtToken().getAuthToken();
-        String username  = jwtToken().getUsername(authToken);
+        String token = jwtToken().getAuthToken();
+        String username  = jwtToken().getUsername(token);
         if (null == username) {
             return;
         }
-        Duration expire = jwtToken().getRenewExpire(authToken);
+        Duration expire = jwtToken().getRenewExpire(token);
         if (null != expire && expire.toMillis() > 0) {
-            String sign = authToken.substring(authToken.lastIndexOf("."));
+            String sign = token.substring(token.lastIndexOf(".") + 1);
             String key = String.format(LOGOUT_KEY, sign);
             logoutCache().set(key, "1", expire);
         }
