@@ -70,7 +70,9 @@ public class RedisCache<V> implements Cache<String, V> {
 
     @Override
     public void remove(String key) {
-        stringRedisTemplate.delete(prefix + key);
+        String delKey = prefix + key;
+        stringRedisTemplate.delete(delKey);
+        stringRedisTemplate.hasKey(delKey);
     }
 
     @Override
