@@ -24,7 +24,6 @@ import io.github.biezhi.keeper.Keeper;
 import io.github.biezhi.keeper.core.cache.Cache;
 import io.github.biezhi.keeper.core.config.JwtConfig;
 import io.github.biezhi.keeper.exception.KeeperException;
-import io.github.biezhi.keeper.utils.CipherUtil;
 import io.github.biezhi.keeper.utils.DateUtil;
 import io.github.biezhi.keeper.utils.SpringContextUtil;
 import io.github.biezhi.keeper.utils.WebUtil;
@@ -37,7 +36,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Optional;
 
-import static io.github.biezhi.keeper.keeperConst.LOGOUT_KEY;
+import static io.github.biezhi.keeper.KeeperConst.LOGOUT_KEY;
 
 public class SimpleJwtToken implements JwtToken {
 

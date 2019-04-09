@@ -17,7 +17,7 @@ package io.github.biezhi.keeper.exception;
 
 import lombok.NoArgsConstructor;
 
-import static io.github.biezhi.keeper.keeperConst.ERROR_MESSAGE_NOT_LOGIN;
+import static io.github.biezhi.keeper.KeeperConst.ERROR_MESSAGE_NOT_LOGIN;
 
 @NoArgsConstructor
 public class UnauthenticException extends KeeperException {

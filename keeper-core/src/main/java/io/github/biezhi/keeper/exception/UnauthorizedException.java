@@ -17,7 +17,7 @@ package io.github.biezhi.keeper.exception;
 
 import lombok.NoArgsConstructor;
 
-import static io.github.biezhi.keeper.keeperConst.ERROR_MESSAGE_NOT_PERMISSION;
+import static io.github.biezhi.keeper.KeeperConst.ERROR_MESSAGE_NOT_PERMISSION;
 
 /**
  * 没有权限

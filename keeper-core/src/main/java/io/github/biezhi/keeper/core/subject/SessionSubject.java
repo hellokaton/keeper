@@ -25,7 +25,7 @@ import io.github.biezhi.keeper.core.authc.AuthenticInfo;
 import io.github.biezhi.keeper.core.authc.AuthorToken;
 import io.github.biezhi.keeper.core.config.SessionConfig;
 import io.github.biezhi.keeper.exception.ExpiredException;
-import io.github.biezhi.keeper.keeperConst;
+import io.github.biezhi.keeper.KeeperConst;
 import io.github.biezhi.keeper.utils.DateUtil;
 import io.github.biezhi.keeper.utils.SpringContextUtil;
 import io.github.biezhi.keeper.utils.WebUtil;
@@ -55,7 +55,7 @@ public class SessionSubject extends SimpleSubject {
             if (null == session) {
                 return null;
             }
-            return (AuthenticInfo) session.getAttribute(keeperConst.KEEPER_SESSION_KEY);
+            return (AuthenticInfo) session.getAttribute(KeeperConst.KEEPER_SESSION_KEY);
         }
         return null;
     }
@@ -69,7 +69,7 @@ public class SessionSubject extends SimpleSubject {
 
         AuthenticInfo authenticInfo = super.login(token);
 
-        session.setAttribute(keeperConst.KEEPER_SESSION_KEY, authenticInfo);
+        session.setAttribute(KeeperConst.KEEPER_SESSION_KEY, authenticInfo);
 
         // remember me
         SessionConfig config = sessionConfig();
@@ -93,7 +93,7 @@ public class SessionSubject extends SimpleSubject {
         if (null == session) {
             return false;
         }
-        Object attribute = session.getAttribute(keeperConst.KEEPER_SESSION_KEY);
+        Object attribute = session.getAttribute(KeeperConst.KEEPER_SESSION_KEY);
         if (null != attribute) {
             return true;
         }
@@ -126,7 +126,7 @@ public class SessionSubject extends SimpleSubject {
             return false;
         }
         AuthenticInfo authenticInfo = authentication().doAuthentic(() -> username);
-        session.setAttribute(keeperConst.KEEPER_SESSION_KEY, authenticInfo);
+        session.setAttribute(KeeperConst.KEEPER_SESSION_KEY, authenticInfo);
         return true;
     }
 
@@ -137,7 +137,7 @@ public class SessionSubject extends SimpleSubject {
         if (null == session) {
             return;
         }
-        session.removeAttribute(keeperConst.KEEPER_SESSION_KEY);
+        session.removeAttribute(KeeperConst.KEEPER_SESSION_KEY);
 
         HttpServletResponse response = WebUtil.currentResponse();
 

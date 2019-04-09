@@ -23,7 +23,6 @@ import io.github.biezhi.keeper.core.authc.impl.SimpleAuthenticInfo;
 import io.github.biezhi.keeper.core.cache.Cache;
 import io.github.biezhi.keeper.core.jwt.JwtToken;
 import io.github.biezhi.keeper.exception.ExpiredException;
-import io.github.biezhi.keeper.utils.CipherUtil;
 import io.github.biezhi.keeper.utils.SpringContextUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -31,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
 
-import static io.github.biezhi.keeper.keeperConst.LOGOUT_KEY;
+import static io.github.biezhi.keeper.KeeperConst.LOGOUT_KEY;
 
 /**
  * @author biezhi

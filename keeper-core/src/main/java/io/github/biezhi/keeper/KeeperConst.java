@@ -19,7 +19,7 @@ package io.github.biezhi.keeper;
  * @author biezhi
  * @date 2019-04-04
  */
-public interface keeperConst {
+public interface KeeperConst {
 
     String KEEPER_SESSION_KEY = "KEEPER_USER_TOKEN";
 
