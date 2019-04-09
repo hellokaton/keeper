@@ -15,6 +15,8 @@
  */
 package io.github.biezhi.keeper.core.jwt;
 
+import java.time.Duration;
+
 public interface JwtToken {
 
     /**
@@ -45,12 +47,14 @@ public interface JwtToken {
      *
      * @param token jwt token
      */
-    boolean canRefresh(String token);
+    boolean canRenew(String token);
 
     /**
      * @return returns token of the current request context, obtained in the header
      */
     String getAuthToken();
+
+    Duration getRenewExpire(String token);
 
     /**
      * Refreshing the current user's JWT token writes a new token to the header of the response.

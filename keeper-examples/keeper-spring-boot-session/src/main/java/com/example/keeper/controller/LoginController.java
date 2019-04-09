@@ -2,7 +2,7 @@ package com.example.keeper.controller;
 
 import com.example.keeper.model.Response;
 import io.github.biezhi.keeper.Keeper;
-import io.github.biezhi.keeper.core.authc.impl.Tokens;
+import io.github.biezhi.keeper.core.authc.impl.SimpleAuthorToken;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,9 +18,7 @@ public class LoginController {
     public Response<String> login(String username, String password) {
 
         Keeper.getSubject().login(
-                Tokens.create(username)
-                        .password(password)
-                        .build());
+                new SimpleAuthorToken(username, password, true));
 
         return Response.<String>builder().code(200).data("登录成功").build();
     }
@@ -40,7 +38,7 @@ public class LoginController {
      *
      * @return
      */
-    @GetMapping("/hello")
+    @RequestMapping("/hello")
     public Response<String> hello() {
         return Response.<String>builder().code(200).data("i,m hello!").build();
     }

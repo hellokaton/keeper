@@ -15,24 +15,18 @@
  */
 package io.github.biezhi.keeper;
 
+import io.github.biezhi.keeper.core.authc.AuthenticInfo;
 import io.github.biezhi.keeper.core.authc.Authorization;
 import io.github.biezhi.keeper.core.cache.Cache;
 import io.github.biezhi.keeper.core.cache.map.MapCache;
 import io.github.biezhi.keeper.core.config.JwtConfig;
 import io.github.biezhi.keeper.core.config.SessionConfig;
-import io.github.biezhi.keeper.core.jwt.JwtToken;
 import io.github.biezhi.keeper.core.subject.JwtSubject;
 import io.github.biezhi.keeper.core.subject.SessionSubject;
 import io.github.biezhi.keeper.core.subject.Subject;
 import io.github.biezhi.keeper.enums.SubjectType;
 import io.github.biezhi.keeper.utils.SpringContextUtil;
-import io.github.biezhi.keeper.utils.WebUtil;
-import lombok.Getter;
 import lombok.Setter;
-
-import javax.servlet.http.HttpSession;
-
-import java.time.Duration;
 
 /**
  * @author biezhi
@@ -51,49 +45,18 @@ public class Keeper {
 
     private SessionConfig sessionConfig;
 
-    @Setter
-    private Cache<String, Subject> subjectStorage = new MapCache<>();
-
-    private static final SessionSubject NO_LOGIN_SESSION_SUBJECT = new SessionSubject();
+    private Cache<String, AuthenticInfo> authenticInfoCache = new MapCache<>();
+    private Cache<String, String>        logoutCache        = new MapCache<>();
 
     public static Subject getSubject() {
         Keeper keeper = SpringContextUtil.getBean(Keeper.class);
-
         if (SubjectType.SESSION.equals(keeper.subjectType)) {
-            HttpSession session = WebUtil.currentSession(true);
-            if (null == session || null == session.getAttribute(keeperConst.KEEPER_SESSION_KEY)) {
-                return new SessionSubject();
-            }
-            if (!keeper.subjectStorage.exists(session.getId())) {
-                return new SessionSubject();
-            }
-            return keeper.subjectStorage.get(session.getId());
+            return new SessionSubject();
         } else if (SubjectType.JWT.equals(keeper.subjectType)) {
-            JwtToken jwtToken = SpringContextUtil.getBean(JwtToken.class);
-            String token = jwtToken.getAuthToken();
-            String username = jwtToken.getUsername(token);
-            if (null == username) {
-                return new JwtSubject();
-            }
-            if (!keeper.subjectStorage.exists(username)) {
-                return new JwtSubject();
-            }
-            return keeper.subjectStorage.get(username);
+            return new JwtSubject();
         } else {
-            return NO_LOGIN_SESSION_SUBJECT;
+            return new SessionSubject();
         }
-    }
-
-    public void addSubject(String key, Subject subject, Duration expiresTime) {
-        subjectStorage.put(key, subject, expiresTime);
-    }
-
-    public void removeSubject(String key) {
-        subjectStorage.remove(key);
-    }
-
-    public boolean existsSubject(String key) {
-        return subjectStorage.exists(key);
     }
 
     public boolean enableURIAuthorizeCache() {
@@ -126,5 +89,21 @@ public class Keeper {
 
     public void setSessionConfig(SessionConfig sessionConfig) {
         this.sessionConfig = sessionConfig;
+    }
+
+    public Cache<String, AuthenticInfo> getAuthenticInfoCache() {
+        return authenticInfoCache;
+    }
+
+    public void setAuthenticInfoCache(Cache<String, AuthenticInfo> authenticInfoCache) {
+        this.authenticInfoCache = authenticInfoCache;
+    }
+
+    public Cache<String, String> getLogoutCache() {
+        return logoutCache;
+    }
+
+    public void setLogoutCache(Cache<String, String> logoutCache) {
+        this.logoutCache = logoutCache;
     }
 }

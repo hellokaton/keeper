@@ -100,7 +100,7 @@ public class AuthenticFilter extends OncePerRequestFilter {
         // init web context
         WebUtil.initContext(request, response);
 
-        // Whether to skip the URI
+        // whether to skip the URI
         if (!this.matches(lookupPath, pathMatcher)) {
             this.doFilter(request, response, filterChain);
             WebUtil.removeRequest();
@@ -110,8 +110,7 @@ public class AuthenticFilter extends OncePerRequestFilter {
         try {
             authentic = isAuthentic(request, response);
         } catch (Exception e) {
-            this.authenticError(e, request, response);
-            this.doFilter(request, response, filterChain);
+            this.authenticError(e, request, response, filterChain);
             WebUtil.removeRequest();
             return;
         }
@@ -132,20 +131,19 @@ public class AuthenticFilter extends OncePerRequestFilter {
      */
     protected boolean isAuthentic(HttpServletRequest request, HttpServletResponse response) {
         Subject subject = Keeper.getSubject();
-        if (null == subject) {
-            return false;
-        }
         return subject.isLogin();
     }
 
     /**
      * Processing logic when an authentication failure occurs abnormally
      */
-    protected void authenticError(Exception e, HttpServletRequest request, HttpServletResponse response) {
+    protected void authenticError(Exception e, HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         if (e instanceof ExpiredException) {
             Subject subject = Keeper.getSubject();
-            if (null == subject || !subject.renew()) {
+            if (!subject.renew()) {
                 this.unAuthentic(request, response);
+            } else {
+                this.doFilter(request, response, filterChain);
             }
         } else {
             log.error("authentic error", e);

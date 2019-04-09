@@ -16,15 +16,27 @@
 package io.github.biezhi.keeper.core.authc.impl;
 
 import io.github.biezhi.keeper.core.authc.AuthorToken;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-public class SimpleToken implements AuthorToken {
+@NoArgsConstructor
+@AllArgsConstructor
+public class SimpleAuthorToken implements AuthorToken {
 
-    private long loginTime;
+    private String  username;
+    private String  password;
+    private boolean remember;
 
-    private String              username;
-    private String              password;
+    public SimpleAuthorToken(String username) {
+        this.username = username;
+    }
+
+    public SimpleAuthorToken(String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
 
     @Override
     public String username() {
@@ -36,4 +48,8 @@ public class SimpleToken implements AuthorToken {
         return password;
     }
 
+    @Override
+    public boolean remember() {
+        return remember;
+    }
 }

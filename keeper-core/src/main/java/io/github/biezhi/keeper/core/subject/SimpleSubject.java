@@ -20,14 +20,15 @@ import io.github.biezhi.keeper.Keeper;
 import io.github.biezhi.keeper.annotation.Permissions;
 import io.github.biezhi.keeper.annotation.Roles;
 import io.github.biezhi.keeper.core.authc.*;
-import io.github.biezhi.keeper.core.authc.impl.SimpleToken;
-import io.github.biezhi.keeper.core.authc.impl.Tokens;
+import io.github.biezhi.keeper.core.authc.cipher.Cipher;
 import io.github.biezhi.keeper.core.cache.AuthorizeCache;
+import io.github.biezhi.keeper.core.cache.Cache;
 import io.github.biezhi.keeper.enums.Logical;
+import io.github.biezhi.keeper.exception.UnauthenticException;
+import io.github.biezhi.keeper.exception.WrongPasswordException;
 import io.github.biezhi.keeper.utils.SpringContextUtil;
 import lombok.Data;
 
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -39,42 +40,33 @@ import java.util.Set;
 @Data
 public abstract class SimpleSubject implements Subject {
 
-    protected SimpleToken token;
+    protected Authentication authentication() {
+        return SpringContextUtil.getBean(Authentication.class);
+    }
 
-    /**
-     * Identifies the current user's logon status,
-     * which is modified only when logon and logout are invoked.
-     *
-     * @see SimpleSubject#login
-     * @see SimpleSubject#logout
-     */
-    protected Boolean isLogin = Boolean.FALSE;
+    protected Cache<String, AuthenticInfo> authenticCache() {
+        return keeper().getAuthenticInfoCache();
+    }
 
-    @Override
-    public AuthenticInfo authenticInfo() {
-        return null;
+    protected Keeper keeper() {
+        return SpringContextUtil.getBean(Keeper.class);
     }
 
     @JsonIgnore
     @Override
     public AuthenticInfo login(AuthorToken token) {
-        this.token = Tokens.build(token);
-        this.token.setLoginTime(Instant.now().getEpochSecond());
-        this.isLogin = true;
-        return null;
-    }
+        AuthenticInfo authenticInfo = authentication().doAuthentic(token);
 
-    @JsonIgnore
-    @Override
-    public void logout() {
-        this.token = null;
-        this.isLogin = false;
-    }
+        if (null == authenticInfo) {
+            throw UnauthenticException.build("AuthenticInfo can not be null.");
+        }
 
-    @JsonIgnore
-    @Override
-    public boolean isLogin() {
-        return this.isLogin;
+        Cipher cipher = authentication().cipher();
+
+        if (null != cipher && !cipher.verify(token, authenticInfo)) {
+            throw WrongPasswordException.build();
+        }
+        return authenticInfo;
     }
 
     @JsonIgnore
@@ -116,20 +108,21 @@ public abstract class SimpleSubject implements Subject {
     }
 
     protected AuthorizeInfo authorize(boolean reload) {
-        Authorization authorization = SpringContextUtil.getBean(Keeper.class).getAuthorization();
-        String username = token.username();
-        AuthorizeCache cache = authorization.loadWithCache();
+        AuthenticInfo  authenticInfo = this.authenticInfo();
+        Authorization  authorization = SpringContextUtil.getBean(Keeper.class).getAuthorization();
+        String         username      = authenticInfo.username();
+        AuthorizeCache cache         = authorization.loadWithCache();
         if (cache == null) {
-            return authorization.doAuthorization(token);
+            return authorization.doAuthorization(authenticInfo);
         }
 
         if (reload) {
             cache.remove(username);
         }
         if (!cache.cached(username)) {
-            AuthorizeInfo authorizeInfo = authorization.doAuthorization(token);
+            AuthorizeInfo authorizeInfo = authorization.doAuthorization(authenticInfo);
             if (null != authorizeInfo) {
-                cache.put(username, authorizeInfo);
+                cache.set(username, authorizeInfo);
             }
             return authorizeInfo;
         } else {

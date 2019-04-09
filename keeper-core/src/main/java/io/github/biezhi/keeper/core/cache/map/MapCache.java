@@ -28,19 +28,29 @@ public class MapCache<K, V> implements Cache<K, V> {
     }
 
     @Override
-    public void put(K key, V value) {
+    public void set(K key, V value) {
         cache.putIfAbsent(key, value);
     }
 
     @Deprecated
     @Override
-    public void put(K key, V value, Duration expiresTime) {
+    public void set(K key, V value, Duration expiresTime) {
         cache.putIfAbsent(key, value);
     }
 
     @Override
     public V get(K key) {
         return cache.get(key);
+    }
+
+    @Override
+    public void delWith(String keyPrefix) {
+        Set<K> keySet = keySet();
+        for (K k : keySet) {
+            if (k.toString().startsWith(keyPrefix)) {
+                remove(k);
+            }
+        }
     }
 
     @Override

@@ -25,13 +25,13 @@ public class RedisCache<V> implements Cache<String, V> {
     }
 
     @Override
-    public void put(String key, V value) {
+    public void set(String key, V value) {
         String json = JsonUtil.toJSONString(value);
         stringRedisTemplate.opsForValue().set(prefix + key, json);
     }
 
     @Override
-    public void put(String key, V value, Duration expiresTime) {
+    public void set(String key, V value, Duration expiresTime) {
         String json = JsonUtil.toJSONString(value);
         stringRedisTemplate.opsForValue().set(prefix + key, json);
         if (null != expiresTime && expiresTime.toMillis() > 0) {
@@ -42,6 +42,12 @@ public class RedisCache<V> implements Cache<String, V> {
     @Override
     public V get(String key) {
         throw new KeeperException("please override get method.");
+    }
+
+    @Override
+    public void delWith(String keyPrefix) {
+        Set<String> keys = stringRedisTemplate.keys(keyPrefix + "*");
+        stringRedisTemplate.delete(keys);
     }
 
     @Override
@@ -64,7 +70,9 @@ public class RedisCache<V> implements Cache<String, V> {
 
     @Override
     public void remove(String key) {
-        stringRedisTemplate.delete(prefix + key);
+        String delKey = prefix + key;
+        stringRedisTemplate.delete(delKey);
+        stringRedisTemplate.hasKey(delKey);
     }
 
     @Override

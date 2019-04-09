@@ -3,6 +3,7 @@ package com.example.keeper.controller;
 import com.example.keeper.model.Response;
 import io.github.biezhi.keeper.Keeper;
 import io.github.biezhi.keeper.core.authc.AuthenticInfo;
+import io.github.biezhi.keeper.core.authc.impl.SimpleAuthorToken;
 import io.github.biezhi.keeper.core.authc.impl.Tokens;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,10 +18,9 @@ public class LoginController {
 
     @PostMapping("/login")
     public Response<String> login(String username, String password) {
+
         AuthenticInfo authenticInfo = Keeper.getSubject().login(
-                Tokens.create(username)
-                        .password(password)
-                        .build());
+                new SimpleAuthorToken(username, password));
 
         log.info("create token: {}", authenticInfo.payload());
         return Response.<String>builder().code(200).data(authenticInfo.payload().toString()).build();
@@ -31,7 +31,7 @@ public class LoginController {
      *
      * @return
      */
-    @GetMapping("/guest")
+    @RequestMapping("/guest")
     public Response<String> guest() {
         return Response.<String>builder().code(200).data("guest!").build();
     }
@@ -41,9 +41,10 @@ public class LoginController {
      *
      * @return
      */
-    @GetMapping("/hello")
+    @RequestMapping("/hello")
     public Response<String> hello() {
-        return Response.<String>builder().code(200).data("i,m hello!").build();
+        String username = Keeper.getSubject().authenticInfo().username();
+        return Response.<String>builder().code(200).data("Hello, i'm " + username).build();
     }
 
     @RequestMapping("/logout")

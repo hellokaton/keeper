@@ -20,18 +20,24 @@ import com.auth0.jwt.JWTCreator;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import io.github.biezhi.keeper.Keeper;
+import io.github.biezhi.keeper.core.cache.Cache;
 import io.github.biezhi.keeper.core.config.JwtConfig;
 import io.github.biezhi.keeper.exception.KeeperException;
+import io.github.biezhi.keeper.utils.CipherUtil;
+import io.github.biezhi.keeper.utils.DateUtil;
+import io.github.biezhi.keeper.utils.SpringContextUtil;
 import io.github.biezhi.keeper.utils.WebUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.UnsupportedEncodingException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Optional;
+
+import static io.github.biezhi.keeper.keeperConst.LOGOUT_KEY;
 
 public class SimpleJwtToken implements JwtToken {
 
@@ -63,22 +69,18 @@ public class SimpleJwtToken implements JwtToken {
 
     @Override
     public String create(String username) {
-        try {
-            JWTCreator.Builder builder = JWT.create()
-                    .withSubject(username)
-                    .withIssuedAt(new Date())
-                    .withExpiresAt(datePlus(config.getExpires().toMillis()));
+        JWTCreator.Builder builder = JWT.create()
+                .withSubject(username)
+                .withIssuedAt(new Date())
+                .withExpiresAt(DateUtil.plus(config.getExpires().toMillis()));
 
-            if (null != config.getRenewExpires() &&
-                    config.getRenewExpires().toMillis() > 0) {
+        if (null != config.getRenewExpires() &&
+                config.getRenewExpires().toMillis() > 0) {
 
-                builder.withClaim(REFRESH_EXPIRES_AT,
-                        datePlus(config.getRenewExpires().toMillis()));
-            }
-            return builder.sign(Algorithm.HMAC256(config.getSecret()));
-        } catch (UnsupportedEncodingException e) {
-            return null;
+            builder.withClaim(REFRESH_EXPIRES_AT,
+                    DateUtil.plus(config.getRenewExpires().toMillis()));
         }
+        return builder.sign(Algorithm.HMAC256(config.getSecret()));
     }
 
     @Override
@@ -91,8 +93,21 @@ public class SimpleJwtToken implements JwtToken {
                 .orElse(null);
     }
 
+    public Cache<String, String> logoutCache() {
+        return SpringContextUtil.getBean(Keeper.class).getLogoutCache();
+    }
+
     @Override
     public boolean isExpired(String token) {
+        if (null == token) {
+            return true;
+        }
+
+        String sign = token.substring(token.lastIndexOf(".") + 1);
+        String key = String.format(LOGOUT_KEY, sign);
+        if (logoutCache().exists(key)) {
+            return true;
+        }
         Date now = Calendar.getInstance().getTime();
 
         Date expiresAt = this.parseToken(token)
@@ -105,8 +120,14 @@ public class SimpleJwtToken implements JwtToken {
     }
 
     @Override
-    public boolean canRefresh(String token) {
+    public boolean canRenew(String token) {
         if (null == token) {
+            return false;
+        }
+
+        String sign = token.substring(token.lastIndexOf(".") + 1);
+        String key = String.format(LOGOUT_KEY, sign);
+        if (logoutCache().exists(key)) {
             return false;
         }
 
@@ -136,6 +157,18 @@ public class SimpleJwtToken implements JwtToken {
     }
 
     @Override
+    public Duration getRenewExpire(String token) {
+        if (null == token) {
+            return Duration.ofMillis(0);
+        }
+        return this.parseToken(token)
+                .map(decode -> decode.getClaim(REFRESH_EXPIRES_AT))
+                .map(Claim::asLong)
+                .map(Duration::ofSeconds)
+                .orElse(Duration.ofMillis(0));
+    }
+
+    @Override
     public String refresh(String username) {
         HttpServletRequest  request  = WebUtil.currentRequest();
         HttpServletResponse response = WebUtil.currentResponse();
@@ -148,10 +181,6 @@ public class SimpleJwtToken implements JwtToken {
         request.setAttribute(NEW_TOKEN, token);
         response.setHeader(config.getHeader(), token);
         return token;
-    }
-
-    private Date datePlus(long millis) {
-        return new Date(System.currentTimeMillis() + millis);
     }
 
     private Optional<DecodedJWT> parseToken(String token) {

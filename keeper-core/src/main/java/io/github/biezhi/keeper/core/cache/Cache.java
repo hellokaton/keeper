@@ -26,11 +26,13 @@ import java.util.Set;
  */
 public interface Cache<K, V> {
 
-    void put(K key, V value);
+    void set(K key, V value);
 
-    void put(K key, V value, Duration expiresTime);
+    void set(K key, V value, Duration expiresTime);
 
     V get(K key);
+
+    void delWith(String keyPrefix);
 
     boolean exists(K key);
 

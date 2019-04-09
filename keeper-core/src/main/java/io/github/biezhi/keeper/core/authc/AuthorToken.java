@@ -36,4 +36,8 @@ public interface AuthorToken {
         return null;
     }
 
+    default boolean remember() {
+        return false;
+    }
+
 }
