@@ -6,3 +6,6 @@ spring:
     database: 0
     host: localhost
     port: 6379
+keeper:
+  session:
+    renewExpires: 7d

@@ -25,9 +25,9 @@ import io.github.biezhi.keeper.core.authc.AuthenticInfo;
 import io.github.biezhi.keeper.core.authc.AuthorToken;
 import io.github.biezhi.keeper.core.config.SessionConfig;
 import io.github.biezhi.keeper.exception.ExpiredException;
-import io.github.biezhi.keeper.keeperConst;
 import io.github.biezhi.keeper.utils.DateUtil;
 import io.github.biezhi.keeper.utils.SpringContextUtil;
+import io.github.biezhi.keeper.utils.StringUtil;
 import io.github.biezhi.keeper.utils.WebUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -36,7 +36,11 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.time.Duration;
 import java.util.Date;
+
+import static io.github.biezhi.keeper.keeperConst.KEEPER_SESSION_KEY;
+import static io.github.biezhi.keeper.keeperConst.LOGOUT_KEY;
 
 /**
  * SessionSubject
@@ -50,14 +54,14 @@ public class SessionSubject extends SimpleSubject {
 
     @Override
     public AuthenticInfo authenticInfo() {
-        if (isLogin()) {
-            HttpSession session = WebUtil.currentSession();
-            if (null == session) {
-                return null;
-            }
-            return (AuthenticInfo) session.getAttribute(keeperConst.KEEPER_SESSION_KEY);
+        if (!isLogin()) {
+            return null;
         }
-        return null;
+        HttpSession session = WebUtil.currentSession();
+        if (null == session) {
+            return null;
+        }
+        return (AuthenticInfo) session.getAttribute(KEEPER_SESSION_KEY);
     }
 
     @Override
@@ -69,7 +73,7 @@ public class SessionSubject extends SimpleSubject {
 
         AuthenticInfo authenticInfo = super.login(token);
 
-        session.setAttribute(keeperConst.KEEPER_SESSION_KEY, authenticInfo);
+        session.setAttribute(KEEPER_SESSION_KEY, authenticInfo);
 
         // remember me
         SessionConfig config = sessionConfig();
@@ -93,7 +97,7 @@ public class SessionSubject extends SimpleSubject {
         if (null == session) {
             return false;
         }
-        Object attribute = session.getAttribute(keeperConst.KEEPER_SESSION_KEY);
+        Object attribute = session.getAttribute(KEEPER_SESSION_KEY);
         if (null != attribute) {
             return true;
         }
@@ -105,56 +109,75 @@ public class SessionSubject extends SimpleSubject {
 
     @Override
     public boolean renew() {
-        SessionConfig      config  = sessionConfig();
-        HttpServletRequest request = WebUtil.currentRequest();
-        HttpSession        session = WebUtil.currentSession();
+        HttpSession session = WebUtil.currentSession();
 
-        String   kid     = "";
-        Cookie[] cookies = request.getCookies();
-        for (Cookie cookie : cookies) {
-            if (cookie.getName().equals(config.getCookieName())) {
-                kid = cookie.getValue();
-                break;
-            }
+        String token  = "";
+        Cookie cookie = getRenewCookie();
+        if (null != cookie) {
+            token = cookie.getValue();
         }
 
-        if (null == kid || kid.trim().equals("")) {
+        if (StringUtil.isEmpty(token)) {
             return false;
         }
-        String username = getUsername(kid);
-        if (null == username) {
+        String username = getUsername(token);
+        if (StringUtil.isEmpty(username)) {
             return false;
         }
+
+        // 判断是否是已经失效的 token
+        if (isExpired(token)) {
+            return false;
+        }
+
         AuthenticInfo authenticInfo = authentication().doAuthentic(() -> username);
-        session.setAttribute(keeperConst.KEEPER_SESSION_KEY, authenticInfo);
+        session.setAttribute(KEEPER_SESSION_KEY, authenticInfo);
         return true;
     }
 
     @Override
     public void logout() {
-        HttpServletRequest request = WebUtil.currentRequest();
-        HttpSession        session = WebUtil.currentSession();
+        HttpSession session = WebUtil.currentSession();
         if (null == session) {
             return;
         }
-        session.removeAttribute(keeperConst.KEEPER_SESSION_KEY);
+        session.removeAttribute(KEEPER_SESSION_KEY);
 
         HttpServletResponse response = WebUtil.currentResponse();
 
-        SessionConfig config  = sessionConfig();
-        Cookie[]      cookies = request.getCookies();
-        for (Cookie cookie : cookies) {
-            if (cookie.getName().equals(config.getCookieName())) {
-                cookie.setValue("");
-                cookie.setMaxAge(0);
-                response.addCookie(cookie);
-                break;
-            }
+        Cookie cookie = getRenewCookie();
+        if (null == cookie) {
+            return;
         }
+        String token = cookie.getValue();
+        cookie.setValue("");
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+
+        Date expiresAt = JWT.decode(token).getExpiresAt();
+        if (null == expiresAt || expiresAt.before(new Date())) {
+            return;
+        }
+        long expires = expiresAt.toInstant().getEpochSecond() - System.currentTimeMillis() / 1000;
+
+        String sign = token.substring(token.lastIndexOf(".") + 1);
+        String key  = String.format(LOGOUT_KEY, sign);
+        logoutCache().set(key, "1", Duration.ofSeconds(expires));
     }
 
     private SessionConfig sessionConfig() {
         return SpringContextUtil.getBean(Keeper.class).getSessionConfig();
+    }
+
+    private Cookie getRenewCookie() {
+        HttpServletRequest request = WebUtil.currentRequest();
+        Cookie[]           cookies = request.getCookies();
+        for (Cookie cookie : cookies) {
+            if (cookie.getName().equals(sessionConfig().getCookieName())) {
+                return cookie;
+            }
+        }
+        return null;
     }
 
     private String generateToken(String username) {
@@ -167,8 +190,26 @@ public class SessionSubject extends SimpleSubject {
         return builder.sign(Algorithm.HMAC256(config.getSecret()));
     }
 
+    private boolean isExpired(String token) {
+        if (StringUtil.isEmpty(token)) {
+            return true;
+        }
+
+        String sign = token.substring(token.lastIndexOf(".") + 1);
+        String key  = String.format(LOGOUT_KEY, sign);
+        if (logoutCache().exists(key)) {
+            return true;
+        }
+        try {
+            Date expiresAt = JWT.decode(token).getExpiresAt();
+            return expiresAt.before(new Date());
+        } catch (Exception e) {
+            return true;
+        }
+    }
+
     private String getUsername(String token) {
-        if (null == token) {
+        if (StringUtil.isEmpty(token)) {
             return null;
         }
         SessionConfig config = sessionConfig();
@@ -180,7 +221,6 @@ public class SessionSubject extends SimpleSubject {
             DecodedJWT jwt = verifier.verify(token);
             return jwt.getSubject();
         } catch (Exception e) {
-            System.out.println(e.getMessage());
             return null;
         }
     }

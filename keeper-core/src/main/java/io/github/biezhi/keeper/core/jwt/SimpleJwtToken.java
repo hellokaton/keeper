@@ -24,16 +24,15 @@ import io.github.biezhi.keeper.Keeper;
 import io.github.biezhi.keeper.core.cache.Cache;
 import io.github.biezhi.keeper.core.config.JwtConfig;
 import io.github.biezhi.keeper.exception.KeeperException;
-import io.github.biezhi.keeper.utils.CipherUtil;
 import io.github.biezhi.keeper.utils.DateUtil;
 import io.github.biezhi.keeper.utils.SpringContextUtil;
+import io.github.biezhi.keeper.utils.StringUtil;
 import io.github.biezhi.keeper.utils.WebUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Optional;
 
@@ -85,7 +84,7 @@ public class SimpleJwtToken implements JwtToken {
 
     @Override
     public String getUsername(String token) {
-        if (null == token) {
+        if (StringUtil.isEmpty(token)) {
             return null;
         }
         return this.parseToken(token)
@@ -99,16 +98,15 @@ public class SimpleJwtToken implements JwtToken {
 
     @Override
     public boolean isExpired(String token) {
-        if (null == token) {
+        if (StringUtil.isEmpty(token)) {
             return true;
         }
 
         String sign = token.substring(token.lastIndexOf(".") + 1);
-        String key = String.format(LOGOUT_KEY, sign);
+        String key  = String.format(LOGOUT_KEY, sign);
         if (logoutCache().exists(key)) {
             return true;
         }
-        Date now = Calendar.getInstance().getTime();
 
         Date expiresAt = this.parseToken(token)
                 .map(DecodedJWT::getExpiresAt)
@@ -116,17 +114,17 @@ public class SimpleJwtToken implements JwtToken {
                         new KeeperException("Invalid token type, missing expires_at claim")
                 );
 
-        return expiresAt.before(now);
+        return expiresAt.before(new Date());
     }
 
     @Override
     public boolean canRenew(String token) {
-        if (null == token) {
+        if (StringUtil.isEmpty(token)) {
             return false;
         }
 
         String sign = token.substring(token.lastIndexOf(".") + 1);
-        String key = String.format(LOGOUT_KEY, sign);
+        String key  = String.format(LOGOUT_KEY, sign);
         if (logoutCache().exists(key)) {
             return false;
         }
@@ -150,7 +148,8 @@ public class SimpleJwtToken implements JwtToken {
             return (String) request.getAttribute(NEW_TOKEN);
         }
         String authorization = request.getHeader(config.getHeader());
-        if (null == authorization) {
+        if (StringUtil.isEmpty(authorization) ||
+                !authorization.contains(config.getTokenHead())) {
             return null;
         }
         return authorization.replace(config.getTokenHead(), "");
@@ -158,7 +157,7 @@ public class SimpleJwtToken implements JwtToken {
 
     @Override
     public Duration getRenewExpire(String token) {
-        if (null == token) {
+        if (StringUtil.isEmpty(token)) {
             return Duration.ofMillis(0);
         }
         return this.parseToken(token)

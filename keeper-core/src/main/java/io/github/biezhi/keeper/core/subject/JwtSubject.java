@@ -20,11 +20,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.github.biezhi.keeper.core.authc.AuthenticInfo;
 import io.github.biezhi.keeper.core.authc.AuthorToken;
 import io.github.biezhi.keeper.core.authc.impl.SimpleAuthenticInfo;
-import io.github.biezhi.keeper.core.cache.Cache;
 import io.github.biezhi.keeper.core.jwt.JwtToken;
 import io.github.biezhi.keeper.exception.ExpiredException;
-import io.github.biezhi.keeper.utils.CipherUtil;
 import io.github.biezhi.keeper.utils.SpringContextUtil;
+import io.github.biezhi.keeper.utils.StringUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
@@ -43,26 +42,26 @@ import static io.github.biezhi.keeper.keeperConst.LOGOUT_KEY;
 @EqualsAndHashCode(callSuper = true)
 public class JwtSubject extends SimpleSubject {
 
-    public Cache<String, String> logoutCache() {
-        return keeper().getLogoutCache();
+    private JwtToken jwtToken() {
+        return SpringContextUtil.getBean(JwtToken.class);
     }
 
     @Override
     public AuthenticInfo authenticInfo() {
-        if (isLogin()) {
-            String token    = jwtToken().getAuthToken();
-            String username = jwtToken().getUsername(token);
-            if (authenticCache().exists(username)) {
-                return authenticCache().get(username);
-            }
-            AuthenticInfo authenticInfo = authentication().doAuthentic(() -> username);
-            if (null == authenticInfo) {
-                return null;
-            }
-            authenticCache().set(username, authenticInfo);
-            return authenticInfo;
+        if (!isLogin()) {
+            return null;
         }
-        return null;
+        String token    = jwtToken().getAuthToken();
+        String username = jwtToken().getUsername(token);
+        if (authenticCache().exists(username)) {
+            return authenticCache().get(username);
+        }
+        AuthenticInfo authenticInfo = authentication().doAuthentic(() -> username);
+        if (null == authenticInfo) {
+            return null;
+        }
+        authenticCache().set(username, authenticInfo);
+        return authenticInfo;
     }
 
     @JsonIgnore
@@ -80,18 +79,17 @@ public class JwtSubject extends SimpleSubject {
     @JsonIgnore
     @Override
     public void logout() {
-        String token = jwtToken().getAuthToken();
-        String username  = jwtToken().getUsername(token);
-        if (null == username) {
+        String token    = jwtToken().getAuthToken();
+        String username = jwtToken().getUsername(token);
+        if (StringUtil.isEmpty(username)) {
             return;
         }
         Duration expire = jwtToken().getRenewExpire(token);
         if (null != expire && expire.toMillis() > 0) {
             String sign = token.substring(token.lastIndexOf(".") + 1);
-            String key = String.format(LOGOUT_KEY, sign);
+            String key  = String.format(LOGOUT_KEY, sign);
             logoutCache().set(key, "1", expire);
         }
-        authenticCache().remove(username);
         authenticCache().remove(username);
     }
 
@@ -99,12 +97,12 @@ public class JwtSubject extends SimpleSubject {
     @Override
     public boolean isLogin() {
         String token = jwtToken().getAuthToken();
-        if (null == token) {
+        if (StringUtil.isEmpty(token)) {
             return false;
         }
 
         String username = jwtToken().getUsername(token);
-        if (null == username) {
+        if (StringUtil.isEmpty(username)) {
             return false;
         }
 
@@ -118,25 +116,21 @@ public class JwtSubject extends SimpleSubject {
     @Override
     public boolean renew() {
         String token = jwtToken().getAuthToken();
-        if (null == token) {
+        if (StringUtil.isEmpty(token)) {
             return false;
         }
         String  username   = jwtToken().getUsername(token);
         boolean canRefresh = jwtToken().canRenew(token);
-        if (canRefresh) {
-            String newToken = jwtToken().refresh(username);
-            log.info("renew success, token: {}", newToken);
-
-            AuthenticInfo authenticInfo = authentication().doAuthentic(() -> username);
-            authenticCache().set(username, authenticInfo);
-
-            return null != newToken;
+        if (!canRefresh) {
+            return false;
         }
-        return false;
-    }
+        String newToken = jwtToken().refresh(username);
+        log.info("renew success, token: {}", newToken);
 
-    private JwtToken jwtToken() {
-        return SpringContextUtil.getBean(JwtToken.class);
+        AuthenticInfo authenticInfo = authentication().doAuthentic(() -> username);
+        authenticCache().set(username, authenticInfo);
+
+        return null != newToken;
     }
 
 }

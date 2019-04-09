@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-io.github.biezhi.keeper.starter.AuthedAutoConfiguration
+io.github.biezhi.keeper.starter.KeeperAutoConfiguration

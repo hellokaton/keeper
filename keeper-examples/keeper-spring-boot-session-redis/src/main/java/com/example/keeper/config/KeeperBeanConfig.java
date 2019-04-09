@@ -60,6 +60,7 @@ public class KeeperBeanConfig {
     public Keeper initKeeper(Keeper keeper, StringRedisTemplate stringRedisTemplate) {
         keeper.setSubjectType(SubjectType.SESSION);
         keeper.setAuthenticInfoCache(new AuthenticRedisCache(stringRedisTemplate));
+        keeper.setLogoutCache(new LogoutRedisCache(stringRedisTemplate));
         return keeper;
     }
 
