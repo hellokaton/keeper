@@ -137,7 +137,11 @@ public class SessionSubject extends SimpleSubject {
         if (null == session) {
             return;
         }
-        session.removeAttribute(keeperConst.KEEPER_SESSION_KEY);
+        AuthenticInfo authenticInfo = (AuthenticInfo) session.getAttribute(keeperConst.KEEPER_SESSION_KEY);
+        if(null != authenticInfo){
+            session.removeAttribute(keeperConst.KEEPER_SESSION_KEY);
+            authenticCache().remove(authenticInfo.username());
+        }
 
         HttpServletResponse response = WebUtil.currentResponse();
 

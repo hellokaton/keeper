@@ -43,10 +43,6 @@ import static io.github.biezhi.keeper.keeperConst.LOGOUT_KEY;
 @EqualsAndHashCode(callSuper = true)
 public class JwtSubject extends SimpleSubject {
 
-    public Cache<String, AuthenticInfo> authenticCache() {
-        return keeper().getAuthenticInfoCache();
-    }
-
     public Cache<String, String> logoutCache() {
         return keeper().getLogoutCache();
     }
@@ -95,6 +91,7 @@ public class JwtSubject extends SimpleSubject {
             String key = String.format(LOGOUT_KEY, sign);
             logoutCache().set(key, "1", expire);
         }
+        authenticCache().remove(username);
         authenticCache().remove(username);
     }
 
