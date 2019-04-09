@@ -31,7 +31,7 @@ public class AuthorizationBean implements Authentication, Authorization {
 
     @Override
     public Cipher cipher() {
-        return Cipher.MD5;
+        return Cipher.EQUALS;
     }
 
     @Override

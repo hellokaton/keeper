@@ -15,6 +15,7 @@
  */
 package io.github.biezhi.keeper;
 
+import io.github.biezhi.keeper.core.authc.AuthenticInfo;
 import io.github.biezhi.keeper.core.authc.Authorization;
 import io.github.biezhi.keeper.core.cache.Cache;
 import io.github.biezhi.keeper.core.cache.map.MapCache;
@@ -27,11 +28,9 @@ import io.github.biezhi.keeper.core.subject.Subject;
 import io.github.biezhi.keeper.enums.SubjectType;
 import io.github.biezhi.keeper.utils.SpringContextUtil;
 import io.github.biezhi.keeper.utils.WebUtil;
-import lombok.Getter;
 import lombok.Setter;
 
 import javax.servlet.http.HttpSession;
-
 import java.time.Duration;
 
 /**
@@ -60,18 +59,18 @@ public class Keeper {
         Keeper keeper = SpringContextUtil.getBean(Keeper.class);
 
         if (SubjectType.SESSION.equals(keeper.subjectType)) {
-            HttpSession session = WebUtil.currentSession(true);
-            if (null == session || null == session.getAttribute(keeperConst.KEEPER_SESSION_KEY)) {
-                return new SessionSubject();
+            HttpSession session = WebUtil.currentSession();
+            if (null != session &&
+                    null != session.getAttribute(keeperConst.KEEPER_SESSION_KEY)) {
+
+                Object attribute = session.getAttribute(keeperConst.KEEPER_SESSION_KEY);
+                return new SessionSubject((AuthenticInfo) attribute);
             }
-            if (!keeper.subjectStorage.exists(session.getId())) {
-                return new SessionSubject();
-            }
-            return keeper.subjectStorage.get(session.getId());
+            return new SessionSubject();
         } else if (SubjectType.JWT.equals(keeper.subjectType)) {
             JwtToken jwtToken = SpringContextUtil.getBean(JwtToken.class);
-            String token = jwtToken.getAuthToken();
-            String username = jwtToken.getUsername(token);
+            String   token    = jwtToken.getAuthToken();
+            String   username = jwtToken.getUsername(token);
             if (null == username) {
                 return new JwtSubject();
             }

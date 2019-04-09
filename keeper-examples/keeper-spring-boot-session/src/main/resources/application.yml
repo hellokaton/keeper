@@ -1,9 +1,6 @@
 server:
   port: 9991
-  servlet:
-    session:
-      timeout: 20s
 
-keeper:
-  session:
-    renewExpires: 7d
+#keeper:
+#  session:
+#    renewExpires: 7d

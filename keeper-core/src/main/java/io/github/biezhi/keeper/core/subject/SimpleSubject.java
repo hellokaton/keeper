@@ -50,6 +50,13 @@ public abstract class SimpleSubject implements Subject {
 
     protected AuthenticInfo authenticInfo;
 
+    public SimpleSubject(){
+    }
+
+    public SimpleSubject(AuthenticInfo authenticInfo) {
+        this.authenticInfo = authenticInfo;
+    }
+
     @Override
     public AuthenticInfo authenticInfo() {
         return authenticInfo;

@@ -26,13 +26,14 @@ import io.github.biezhi.keeper.core.authc.AuthorToken;
 import io.github.biezhi.keeper.core.authc.cipher.Cipher;
 import io.github.biezhi.keeper.core.config.SessionConfig;
 import io.github.biezhi.keeper.exception.ExpiredException;
-import io.github.biezhi.keeper.exception.UnauthenticException;
+import io.github.biezhi.keeper.exception.WrongPasswordException;
 import io.github.biezhi.keeper.keeperConst;
 import io.github.biezhi.keeper.utils.DateUtil;
 import io.github.biezhi.keeper.utils.SpringContextUtil;
 import io.github.biezhi.keeper.utils.WebUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -47,8 +48,13 @@ import java.util.Date;
  * @date 2019-04-05
  */
 @Data
+@NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class SessionSubject extends SimpleSubject {
+
+    public SessionSubject(AuthenticInfo authenticInfo) {
+        super(authenticInfo);
+    }
 
     @Override
     public AuthenticInfo login(AuthorToken token) {
@@ -64,7 +70,7 @@ public class SessionSubject extends SimpleSubject {
 
         if (null != cipher && !cipher.verify(
                 token.password(), authenticInfo.password())) {
-            throw UnauthenticException.build();
+            throw WrongPasswordException.build();
         }
 
         session.setAttribute(keeperConst.KEEPER_SESSION_KEY, authenticInfo);
@@ -89,9 +95,6 @@ public class SessionSubject extends SimpleSubject {
     @Override
     public boolean isLogin() {
         SessionConfig config = sessionConfig();
-
-        HttpSession session = WebUtil.currentSession();
-        boolean     isLogin = null != session && null != session.getAttribute(keeperConst.KEEPER_SESSION_KEY);
         if (!isLogin && config.getRenewExpires() != null) {
             throw ExpiredException.build();
         }
