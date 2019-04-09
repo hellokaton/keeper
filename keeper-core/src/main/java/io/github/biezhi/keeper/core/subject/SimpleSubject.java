@@ -48,9 +48,11 @@ public abstract class SimpleSubject implements Subject {
      */
     protected Boolean isLogin = Boolean.FALSE;
 
+    protected AuthenticInfo authenticInfo;
+
     @Override
     public AuthenticInfo authenticInfo() {
-        return null;
+        return authenticInfo;
     }
 
     @JsonIgnore
@@ -112,17 +114,17 @@ public abstract class SimpleSubject implements Subject {
 
     protected AuthorizeInfo authorize(boolean reload) {
         Authorization authorization = SpringContextUtil.getBean(Keeper.class).getAuthorization();
-        String username = authenticInfo().username();
+        String username = authenticInfo.username();
         AuthorizeCache cache = authorization.loadWithCache();
         if (cache == null) {
-            return authorization.doAuthorization(authenticInfo());
+            return authorization.doAuthorization(authenticInfo);
         }
 
         if (reload) {
             cache.remove(username);
         }
         if (!cache.cached(username)) {
-            AuthorizeInfo authorizeInfo = authorization.doAuthorization(authenticInfo());
+            AuthorizeInfo authorizeInfo = authorization.doAuthorization(authenticInfo);
             if (null != authorizeInfo) {
                 cache.put(username, authorizeInfo);
             }

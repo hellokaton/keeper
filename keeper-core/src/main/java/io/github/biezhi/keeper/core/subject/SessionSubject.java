@@ -58,10 +58,9 @@ public class SessionSubject extends SimpleSubject {
             return null;
         }
 
-        Authentication authentication = SpringContextUtil.getBean(Authentication.class);
-        AuthenticInfo  authenticInfo  = authentication.doAuthentic(token);
+        this.authenticInfo = authentication().doAuthentic(token);
 
-        Cipher cipher = authentication.cipher();
+        Cipher cipher = authentication().cipher();
 
         if (null != cipher && !cipher.verify(
                 token.password(), authenticInfo.password())) {
@@ -114,13 +113,10 @@ public class SessionSubject extends SimpleSubject {
             }
         }
 
-        Authentication authentication = SpringContextUtil.getBean(Authentication.class);
-
         DecodedJWT decode   = JWT.decode(kid);
         String     username = decode.getSubject();
 
-        AuthenticInfo authenticInfo = authentication.doAuthentic(() -> username);
-
+        this.authenticInfo = authentication().doAuthentic(() -> username);
         session.setAttribute(keeperConst.KEEPER_SESSION_KEY, authenticInfo);
         return true;
     }
@@ -136,6 +132,10 @@ public class SessionSubject extends SimpleSubject {
 
         Keeper keeper = SpringContextUtil.getBean(Keeper.class);
         keeper.removeSubject(session.getId());
+    }
+
+    private Authentication authentication() {
+        return SpringContextUtil.getBean(Authentication.class);
     }
 
     private SessionConfig sessionConfig() {
