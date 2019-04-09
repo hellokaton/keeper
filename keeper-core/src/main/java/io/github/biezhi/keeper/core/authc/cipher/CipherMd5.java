@@ -1,8 +1,8 @@
 package io.github.biezhi.keeper.core.authc.cipher;
 
+import io.github.biezhi.keeper.core.authc.AuthenticInfo;
+import io.github.biezhi.keeper.core.authc.AuthorToken;
 import io.github.biezhi.keeper.utils.CipherUtil;
-
-import java.util.Objects;
 
 /**
  * CipherMd5
@@ -13,11 +13,13 @@ import java.util.Objects;
 public class CipherMd5 implements Cipher {
 
     @Override
-    public boolean verify(String rawPassword, String encryptPassword) {
-        if (null != rawPassword && null != encryptPassword) {
-            return Objects.equals(CipherUtil.md5(rawPassword), encryptPassword);
+    public boolean verify(AuthorToken token, AuthenticInfo authenticInfo) {
+        String rawPassword     = tokenCipher(token);
+        String encryptPassword = authenticCipher(authenticInfo);
+        if (null == rawPassword || null == encryptPassword) {
+            return false;
         }
-        return false;
+        return encryptPassword.equalsIgnoreCase(CipherUtil.md5(rawPassword));
     }
 
 }

@@ -3,6 +3,7 @@ package com.example.keeper.config;
 import com.example.keeper.model.User;
 import com.example.keeper.service.UserService;
 import io.github.biezhi.keeper.core.authc.*;
+import io.github.biezhi.keeper.core.authc.cipher.Cipher;
 import io.github.biezhi.keeper.core.authc.impl.SimpleAuthenticInfo;
 import io.github.biezhi.keeper.core.authc.impl.SimpleAuthorizeInfo;
 import io.github.biezhi.keeper.core.cache.AuthorizeCache;
@@ -30,6 +31,11 @@ public class KeeperJwtAuthorizeBean implements Authentication,Authorization {
                 user.getPassword(),
                 user
         );
+    }
+
+    @Override
+    public Cipher cipher() {
+        return Cipher.MD5;
     }
 
     @Override

@@ -3,5 +3,5 @@ server:
 
 keeper:
   jwt:
-    expires: 30s
+    expires: 20s
     renewExpires: 7d
