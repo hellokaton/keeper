@@ -18,7 +18,7 @@ public class LoginController {
     public Response<String> login(String username, String password) {
 
         Keeper.getSubject().login(
-                new SimpleAuthorToken(username, password));
+                new SimpleAuthorToken(username, password, true));
 
         return Response.<String>builder().code(200).data("登录成功").build();
     }
@@ -38,7 +38,7 @@ public class LoginController {
      *
      * @return
      */
-    @GetMapping("/hello")
+    @RequestMapping("/hello")
     public Response<String> hello() {
         return Response.<String>builder().code(200).data("i,m hello!").build();
     }

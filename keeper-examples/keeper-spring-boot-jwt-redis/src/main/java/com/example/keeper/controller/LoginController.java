@@ -41,7 +41,7 @@ public class LoginController {
      *
      * @return
      */
-    @GetMapping("/hello")
+    @RequestMapping("/hello")
     public Response<String> hello() {
         return Response.<String>builder().code(200).data("i,m hello!").build();
     }

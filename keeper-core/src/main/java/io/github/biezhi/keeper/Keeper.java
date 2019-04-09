@@ -15,7 +15,6 @@
  */
 package io.github.biezhi.keeper;
 
-import io.github.biezhi.keeper.core.authc.AuthenticInfo;
 import io.github.biezhi.keeper.core.authc.Authorization;
 import io.github.biezhi.keeper.core.cache.Cache;
 import io.github.biezhi.keeper.core.cache.map.MapCache;
@@ -27,10 +26,8 @@ import io.github.biezhi.keeper.core.subject.SessionSubject;
 import io.github.biezhi.keeper.core.subject.Subject;
 import io.github.biezhi.keeper.enums.SubjectType;
 import io.github.biezhi.keeper.utils.SpringContextUtil;
-import io.github.biezhi.keeper.utils.WebUtil;
 import lombok.Setter;
 
-import javax.servlet.http.HttpSession;
 import java.time.Duration;
 
 /**
@@ -53,19 +50,10 @@ public class Keeper {
     @Setter
     private Cache<String, Subject> subjectStorage = new MapCache<>();
 
-    private static final SessionSubject NO_LOGIN_SESSION_SUBJECT = new SessionSubject();
 
     public static Subject getSubject() {
         Keeper keeper = SpringContextUtil.getBean(Keeper.class);
-
         if (SubjectType.SESSION.equals(keeper.subjectType)) {
-            HttpSession session = WebUtil.currentSession();
-            if (null != session &&
-                    null != session.getAttribute(keeperConst.KEEPER_SESSION_KEY)) {
-
-                Object attribute = session.getAttribute(keeperConst.KEEPER_SESSION_KEY);
-                return new SessionSubject((AuthenticInfo) attribute);
-            }
             return new SessionSubject();
         } else if (SubjectType.JWT.equals(keeper.subjectType)) {
             JwtToken jwtToken = SpringContextUtil.getBean(JwtToken.class);
@@ -79,7 +67,7 @@ public class Keeper {
             }
             return keeper.subjectStorage.get(username);
         } else {
-            return NO_LOGIN_SESSION_SUBJECT;
+            return new SessionSubject();
         }
     }
 

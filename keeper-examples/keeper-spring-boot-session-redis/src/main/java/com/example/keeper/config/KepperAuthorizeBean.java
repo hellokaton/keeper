@@ -1,6 +1,7 @@
 package com.example.keeper.config;
 
 import com.example.keeper.service.UserService;
+import io.github.biezhi.keeper.core.authc.AuthenticInfo;
 import io.github.biezhi.keeper.core.authc.AuthorToken;
 import io.github.biezhi.keeper.core.authc.Authorization;
 import io.github.biezhi.keeper.core.authc.AuthorizeInfo;
@@ -25,7 +26,7 @@ public class KepperAuthorizeBean implements Authorization {
     }
 
     @Override
-    public AuthorizeInfo doAuthorization(AuthorToken token) throws KeeperException {
+    public AuthorizeInfo doAuthorization(AuthenticInfo token) throws KeeperException {
         String username = token.username();
 
         Set<String> roles       = userService.findRoles(username);

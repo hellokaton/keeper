@@ -39,8 +39,6 @@ public class JwtSubject extends SimpleSubject {
     @JsonIgnore
     @Override
     public AuthenticInfo login(AuthorToken token) {
-        super.login(token);
-
         Keeper keeper = SpringContextUtil.getBean(Keeper.class);
         keeper.addSubject(token.username(), this, null);
         String jwtToken = jwtToken().create(token.username());
@@ -53,8 +51,6 @@ public class JwtSubject extends SimpleSubject {
     @JsonIgnore
     @Override
     public void logout() {
-        super.logout();
-
         String authToken = jwtToken().getAuthToken();
         String username  = jwtToken().getUsername(authToken);
         if (null == username) {
@@ -83,7 +79,7 @@ public class JwtSubject extends SimpleSubject {
         if (expired) {
             throw ExpiredException.build();
         }
-        return isLogin;
+        return true;
     }
 
     @Override

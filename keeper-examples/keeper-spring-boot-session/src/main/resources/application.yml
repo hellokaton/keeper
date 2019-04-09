@@ -1,6 +1,6 @@
 server:
   port: 9991
 
-#keeper:
-#  session:
-#    renewExpires: 7d
+keeper:
+  session:
+    renewExpires: 7d

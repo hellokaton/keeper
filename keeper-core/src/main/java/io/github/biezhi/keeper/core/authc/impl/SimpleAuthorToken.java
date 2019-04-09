@@ -48,4 +48,8 @@ public class SimpleAuthorToken implements AuthorToken {
         return password;
     }
 
+    @Override
+    public boolean remember() {
+        return remember;
+    }
 }

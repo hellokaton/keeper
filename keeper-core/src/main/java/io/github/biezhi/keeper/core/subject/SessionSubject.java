@@ -17,6 +17,7 @@ package io.github.biezhi.keeper.core.subject;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTCreator;
+import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import io.github.biezhi.keeper.Keeper;
@@ -33,7 +34,6 @@ import io.github.biezhi.keeper.utils.SpringContextUtil;
 import io.github.biezhi.keeper.utils.WebUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -48,17 +48,11 @@ import java.util.Date;
  * @date 2019-04-05
  */
 @Data
-@NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class SessionSubject extends SimpleSubject {
 
-    public SessionSubject(AuthenticInfo authenticInfo) {
-        super(authenticInfo);
-    }
-
     @Override
     public AuthenticInfo login(AuthorToken token) {
-        super.login(token);
         HttpSession session = WebUtil.currentSession(true);
         if (null == session) {
             return null;
@@ -87,18 +81,24 @@ public class SessionSubject extends SimpleSubject {
             response.addCookie(cookie);
         }
 
-        this.isLogin = true;
-
         return authenticInfo;
     }
 
     @Override
     public boolean isLogin() {
-        SessionConfig config = sessionConfig();
-        if (!isLogin && config.getRenewExpires() != null) {
+        SessionConfig config  = sessionConfig();
+        HttpSession   session = WebUtil.currentSession(true);
+        if (null == session) {
+            return false;
+        }
+        Object attribute = session.getAttribute(keeperConst.KEEPER_SESSION_KEY);
+        if (null != attribute) {
+            return true;
+        }
+        if (config.getRenewExpires() != null) {
             throw ExpiredException.build();
         }
-        return isLogin;
+        return false;
     }
 
     @Override
@@ -116,9 +116,13 @@ public class SessionSubject extends SimpleSubject {
             }
         }
 
-        DecodedJWT decode   = JWT.decode(kid);
-        String     username = decode.getSubject();
-
+        if (null == kid || kid.trim().equals("")) {
+            return false;
+        }
+        String username = getUsername(kid);
+        if (null == username) {
+            return false;
+        }
         this.authenticInfo = authentication().doAuthentic(() -> username);
         session.setAttribute(keeperConst.KEEPER_SESSION_KEY, authenticInfo);
         return true;
@@ -126,15 +130,25 @@ public class SessionSubject extends SimpleSubject {
 
     @Override
     public void logout() {
-        super.logout();
-        HttpSession session = WebUtil.currentSession();
+        HttpServletRequest request = WebUtil.currentRequest();
+        HttpSession        session = WebUtil.currentSession();
         if (null == session) {
             return;
         }
         session.removeAttribute(keeperConst.KEEPER_SESSION_KEY);
 
-        Keeper keeper = SpringContextUtil.getBean(Keeper.class);
-        keeper.removeSubject(session.getId());
+        HttpServletResponse response = WebUtil.currentResponse();
+
+        SessionConfig config  = sessionConfig();
+        Cookie[]      cookies = request.getCookies();
+        for (Cookie cookie : cookies) {
+            if (cookie.getName().equals(config.getCookieName())) {
+                cookie.setValue("");
+                cookie.setMaxAge(0);
+                response.addCookie(cookie);
+                break;
+            }
+        }
     }
 
     private Authentication authentication() {
@@ -153,6 +167,24 @@ public class SessionSubject extends SimpleSubject {
                 .withExpiresAt(DateUtil.plus(config.getRenewExpires().toMillis()));
 
         return builder.sign(Algorithm.HMAC256(config.getSecret()));
+    }
+
+    private String getUsername(String token) {
+        if (null == token) {
+            return null;
+        }
+        SessionConfig config = sessionConfig();
+        try {
+            JWTVerifier verifier = JWT.require(
+                    Algorithm.HMAC256(config.getSecret()))
+                    .build();
+
+            DecodedJWT jwt = verifier.verify(token);
+            return jwt.getSubject();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
     }
 
 }

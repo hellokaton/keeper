@@ -111,7 +111,6 @@ public class AuthenticFilter extends OncePerRequestFilter {
             authentic = isAuthentic(request, response);
         } catch (Exception e) {
             this.authenticError(e, request, response);
-            this.doFilter(request, response, filterChain);
             WebUtil.removeRequest();
             return;
         }

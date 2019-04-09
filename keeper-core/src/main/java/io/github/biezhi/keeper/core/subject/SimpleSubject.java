@@ -19,15 +19,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.github.biezhi.keeper.Keeper;
 import io.github.biezhi.keeper.annotation.Permissions;
 import io.github.biezhi.keeper.annotation.Roles;
-import io.github.biezhi.keeper.core.authc.*;
-import io.github.biezhi.keeper.core.authc.impl.SimpleAuthorToken;
-import io.github.biezhi.keeper.core.authc.impl.Tokens;
+import io.github.biezhi.keeper.core.authc.AuthenticInfo;
+import io.github.biezhi.keeper.core.authc.Authorization;
+import io.github.biezhi.keeper.core.authc.AuthorizeInfo;
 import io.github.biezhi.keeper.core.cache.AuthorizeCache;
 import io.github.biezhi.keeper.enums.Logical;
 import io.github.biezhi.keeper.utils.SpringContextUtil;
 import lombok.Data;
 
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -39,46 +38,11 @@ import java.util.Set;
 @Data
 public abstract class SimpleSubject implements Subject {
 
-    /**
-     * Identifies the current user's logon status,
-     * which is modified only when logon and logout are invoked.
-     *
-     * @see SimpleSubject#login
-     * @see SimpleSubject#logout
-     */
-    protected Boolean isLogin = Boolean.FALSE;
-
     protected AuthenticInfo authenticInfo;
-
-    public SimpleSubject(){
-    }
-
-    public SimpleSubject(AuthenticInfo authenticInfo) {
-        this.authenticInfo = authenticInfo;
-    }
 
     @Override
     public AuthenticInfo authenticInfo() {
         return authenticInfo;
-    }
-
-    @JsonIgnore
-    @Override
-    public AuthenticInfo login(AuthorToken token) {
-        this.isLogin = true;
-        return null;
-    }
-
-    @JsonIgnore
-    @Override
-    public void logout() {
-        this.isLogin = false;
-    }
-
-    @JsonIgnore
-    @Override
-    public boolean isLogin() {
-        return this.isLogin;
     }
 
     @JsonIgnore
@@ -120,9 +84,10 @@ public abstract class SimpleSubject implements Subject {
     }
 
     protected AuthorizeInfo authorize(boolean reload) {
-        Authorization authorization = SpringContextUtil.getBean(Keeper.class).getAuthorization();
-        String username = authenticInfo.username();
-        AuthorizeCache cache = authorization.loadWithCache();
+        AuthenticInfo  authenticInfo = this.authenticInfo();
+        Authorization  authorization = SpringContextUtil.getBean(Keeper.class).getAuthorization();
+        String         username      = authenticInfo.username();
+        AuthorizeCache cache         = authorization.loadWithCache();
         if (cache == null) {
             return authorization.doAuthorization(authenticInfo);
         }
