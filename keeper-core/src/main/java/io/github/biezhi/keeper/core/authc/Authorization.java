@@ -40,7 +40,7 @@ public interface Authorization {
     AuthorizeInfo doAuthorization(AuthenticInfo authenticInfo) throws KeeperException;
 
     /**
-     * Load authorization information from the cache,
+     * Load authorization information from the authenticCache,
      * loaded by default from {@link Authorization#doAuthorization(AuthenticInfo)}
      *
      * @return Authorization information {@link SimpleAuthorizeInfo}

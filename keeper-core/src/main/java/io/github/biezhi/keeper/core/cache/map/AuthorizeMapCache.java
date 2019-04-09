@@ -48,9 +48,9 @@ public class AuthorizeMapCache extends MapCache<String, AuthorizeInfo> implement
     }
 
     @Override
-    public void put(String username, AuthorizeInfo authorizeInfo) {
+    public void set(String username, AuthorizeInfo authorizeInfo) {
         super.remove(username);
-        super.put(username, authorizeInfo);
+        super.set(username, authorizeInfo);
     }
 
 }

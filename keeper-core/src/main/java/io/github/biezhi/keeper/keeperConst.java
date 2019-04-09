@@ -28,4 +28,5 @@ public interface keeperConst {
     String ERROR_MESSAGE_EXPIRED        = "Your account has expired!";
     String ERROR_MESSAGE_WRONG_PASSWORD = "Wrong password!";
 
+    String LOGOUT_KEY = "keeper:logout:token:%s";
 }

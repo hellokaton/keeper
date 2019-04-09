@@ -29,7 +29,7 @@ import io.github.biezhi.keeper.core.authc.impl.SimpleAuthorizeInfo;
 public interface AuthorizeCache {
 
     /**
-     * Obtain the authorization information of the user from the cache according to the username
+     * Obtain the authorization information of the user from the authenticCache according to the username
      *
      * @param username user unique identifier
      * @return {@link SimpleAuthorizeInfo}
@@ -45,23 +45,23 @@ public interface AuthorizeCache {
     boolean cached(String username);
 
     /**
-     * Remove the user authorization cache information
+     * Remove the user authorization authenticCache information
      *
      * @param username user unique identifier
      */
     void remove(String username);
 
     /**
-     * Empty the cache
+     * Empty the authenticCache
      */
     void clear();
 
     /**
-     * Write an authorization cache
+     * Write an authorization authenticCache
      *
      * @param username      user unique identifier
      * @param authorizeInfo AuthorizeInfo
      */
-    void put(String username, AuthorizeInfo authorizeInfo);
+    void set(String username, AuthorizeInfo authorizeInfo);
 
 }

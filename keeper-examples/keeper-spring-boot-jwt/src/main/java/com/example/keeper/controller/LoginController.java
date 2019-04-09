@@ -43,7 +43,8 @@ public class LoginController {
      */
     @RequestMapping("/hello")
     public Response<String> hello() {
-        return Response.<String>builder().code(200).data("i,m hello!").build();
+        String username = Keeper.getSubject().authenticInfo().username();
+        return Response.<String>builder().code(200).data("Hello, i'm " + username).build();
     }
 
     @RequestMapping("/logout")

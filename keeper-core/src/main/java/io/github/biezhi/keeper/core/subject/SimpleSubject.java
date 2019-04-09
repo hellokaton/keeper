@@ -50,6 +50,10 @@ public abstract class SimpleSubject implements Subject {
         return SpringContextUtil.getBean(Authentication.class);
     }
 
+    protected Keeper keeper() {
+        return SpringContextUtil.getBean(Keeper.class);
+    }
+
     @JsonIgnore
     @Override
     public AuthenticInfo login(AuthorToken token) {
@@ -120,7 +124,7 @@ public abstract class SimpleSubject implements Subject {
         if (!cache.cached(username)) {
             AuthorizeInfo authorizeInfo = authorization.doAuthorization(authenticInfo);
             if (null != authorizeInfo) {
-                cache.put(username, authorizeInfo);
+                cache.set(username, authorizeInfo);
             }
             return authorizeInfo;
         } else {

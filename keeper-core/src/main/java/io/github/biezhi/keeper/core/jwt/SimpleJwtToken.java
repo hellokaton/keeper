@@ -20,9 +20,12 @@ import com.auth0.jwt.JWTCreator;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import io.github.biezhi.keeper.Keeper;
+import io.github.biezhi.keeper.core.cache.Cache;
 import io.github.biezhi.keeper.core.config.JwtConfig;
 import io.github.biezhi.keeper.exception.KeeperException;
 import io.github.biezhi.keeper.utils.DateUtil;
+import io.github.biezhi.keeper.utils.SpringContextUtil;
 import io.github.biezhi.keeper.utils.WebUtil;
 
 import javax.servlet.http.HttpServletRequest;
@@ -32,6 +35,8 @@ import java.time.Instant;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Optional;
+
+import static io.github.biezhi.keeper.keeperConst.LOGOUT_KEY;
 
 public class SimpleJwtToken implements JwtToken {
 
@@ -87,8 +92,20 @@ public class SimpleJwtToken implements JwtToken {
                 .orElse(null);
     }
 
+    public Cache<String, String> logoutCache() {
+        return SpringContextUtil.getBean(Keeper.class).getLogoutCache();
+    }
+
     @Override
     public boolean isExpired(String token) {
+        if (null == token) {
+            return true;
+        }
+
+        String key = String.format(LOGOUT_KEY, token);
+        if (logoutCache().exists(key)) {
+            return true;
+        }
         Date now = Calendar.getInstance().getTime();
 
         Date expiresAt = this.parseToken(token)
@@ -101,8 +118,13 @@ public class SimpleJwtToken implements JwtToken {
     }
 
     @Override
-    public boolean canRefresh(String token) {
+    public boolean canRenew(String token) {
         if (null == token) {
+            return false;
+        }
+
+        String key = String.format(LOGOUT_KEY, token);
+        if (logoutCache().exists(key)) {
             return false;
         }
 
@@ -129,6 +151,18 @@ public class SimpleJwtToken implements JwtToken {
             return null;
         }
         return authorization.replace(config.getTokenHead(), "");
+    }
+
+    @Override
+    public Duration getRenewExpire(String token) {
+        if (null == token) {
+            return Duration.ofMillis(0);
+        }
+        return this.parseToken(token)
+                .map(decode -> decode.getClaim(REFRESH_EXPIRES_AT))
+                .map(Claim::asLong)
+                .map(Duration::ofSeconds)
+                .orElse(Duration.ofMillis(0));
     }
 
     @Override

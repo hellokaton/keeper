@@ -25,13 +25,13 @@ public class RedisCache<V> implements Cache<String, V> {
     }
 
     @Override
-    public void put(String key, V value) {
+    public void set(String key, V value) {
         String json = JsonUtil.toJSONString(value);
         stringRedisTemplate.opsForValue().set(prefix + key, json);
     }
 
     @Override
-    public void put(String key, V value, Duration expiresTime) {
+    public void set(String key, V value, Duration expiresTime) {
         String json = JsonUtil.toJSONString(value);
         stringRedisTemplate.opsForValue().set(prefix + key, json);
         if (null != expiresTime && expiresTime.toMillis() > 0) {

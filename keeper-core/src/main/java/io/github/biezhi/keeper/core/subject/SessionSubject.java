@@ -49,6 +49,22 @@ import java.util.Date;
 public class SessionSubject extends SimpleSubject {
 
     @Override
+    public AuthenticInfo authenticInfo() {
+        if (null != this.authenticInfo) {
+            return this.authenticInfo;
+        }
+        if (isLogin()) {
+            HttpSession session = WebUtil.currentSession();
+            if (null == session) {
+                return null;
+            }
+            this.authenticInfo = (AuthenticInfo) session.getAttribute(keeperConst.KEEPER_SESSION_KEY);
+            return this.authenticInfo;
+        }
+        return null;
+    }
+
+    @Override
     public AuthenticInfo login(AuthorToken token) {
         HttpSession session = WebUtil.currentSession(true);
         if (null == session) {

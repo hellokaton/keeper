@@ -17,16 +17,20 @@ package io.github.biezhi.keeper.core.subject;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import io.github.biezhi.keeper.Keeper;
 import io.github.biezhi.keeper.core.authc.AuthenticInfo;
 import io.github.biezhi.keeper.core.authc.AuthorToken;
 import io.github.biezhi.keeper.core.authc.impl.SimpleAuthenticInfo;
+import io.github.biezhi.keeper.core.cache.Cache;
 import io.github.biezhi.keeper.core.jwt.JwtToken;
 import io.github.biezhi.keeper.exception.ExpiredException;
 import io.github.biezhi.keeper.utils.SpringContextUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
+
+import java.time.Duration;
+
+import static io.github.biezhi.keeper.keeperConst.LOGOUT_KEY;
 
 /**
  * @author biezhi
@@ -38,6 +42,32 @@ import lombok.extern.slf4j.Slf4j;
 @EqualsAndHashCode(callSuper = true)
 public class JwtSubject extends SimpleSubject {
 
+    public Cache<String, AuthenticInfo> authenticCache() {
+        return keeper().getAuthenticInfoCache();
+    }
+
+    public Cache<String, String> logoutCache() {
+        return keeper().getLogoutCache();
+    }
+
+    @Override
+    public AuthenticInfo authenticInfo() {
+        if (isLogin()) {
+            String token    = jwtToken().getAuthToken();
+            String username = jwtToken().getUsername(token);
+            if (authenticCache().exists(username)) {
+                return authenticCache().get(username);
+            }
+            this.authenticInfo = authentication().doAuthentic(() -> username);
+            if (null == this.authenticInfo) {
+                return null;
+            }
+            authenticCache().set(username, authenticInfo);
+            return this.authenticInfo;
+        }
+        return null;
+    }
+
     @JsonIgnore
     @Override
     public AuthenticInfo login(AuthorToken token) {
@@ -47,6 +77,7 @@ public class JwtSubject extends SimpleSubject {
         authenticInfo.setPayload(jwtToken);
 
         this.authenticInfo = authenticInfo;
+        authenticCache().set(token.username(), authenticInfo);
         return authenticInfo;
     }
 
@@ -58,8 +89,12 @@ public class JwtSubject extends SimpleSubject {
         if (null == username) {
             return;
         }
-        Keeper keeper = SpringContextUtil.getBean(Keeper.class);
-        keeper.removeSubject(username);
+        Duration expire = jwtToken().getRenewExpire(authToken);
+        if (null != expire && expire.toMillis() > 0) {
+            String key = String.format(LOGOUT_KEY, authToken);
+            logoutCache().set(key, "1", expire);
+        }
+        authenticCache().remove(username);
     }
 
     @JsonIgnore
@@ -89,7 +124,7 @@ public class JwtSubject extends SimpleSubject {
             return false;
         }
         String  username   = jwtToken().getUsername(token);
-        boolean canRefresh = jwtToken().canRefresh(token);
+        boolean canRefresh = jwtToken().canRenew(token);
         if (canRefresh) {
             this.authenticInfo = authentication().doAuthentic(() -> username);
             String newToken = jwtToken().refresh(username);

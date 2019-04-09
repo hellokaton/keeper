@@ -43,8 +43,14 @@ public class Tokens {
     }
 
     public static class AuthorTokenBuilder {
-        String username;
-        String password;
+        String  username;
+        String  password;
+        boolean remember;
+
+        public AuthorTokenBuilder remember(boolean remember) {
+            this.remember = remember;
+            return this;
+        }
 
         public AuthorTokenBuilder password(String password) {
             this.password = password;
@@ -55,6 +61,7 @@ public class Tokens {
             SimpleAuthorToken simpleAuthorToken = new SimpleAuthorToken();
             simpleAuthorToken.setUsername(username);
             simpleAuthorToken.setPassword(password);
+            simpleAuthorToken.setRemember(remember);
             return simpleAuthorToken;
         }
 

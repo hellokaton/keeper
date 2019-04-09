@@ -6,8 +6,6 @@ import io.github.biezhi.keeper.core.authc.*;
 import io.github.biezhi.keeper.core.authc.cipher.Cipher;
 import io.github.biezhi.keeper.core.authc.impl.SimpleAuthenticInfo;
 import io.github.biezhi.keeper.core.authc.impl.SimpleAuthorizeInfo;
-import io.github.biezhi.keeper.core.cache.AuthorizeCache;
-import io.github.biezhi.keeper.core.cache.map.AuthorizeMapCache;
 import io.github.biezhi.keeper.exception.KeeperException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -15,12 +13,10 @@ import org.springframework.stereotype.Component;
 import java.util.Set;
 
 @Component
-public class KeeperJwtAuthorizeBean implements Authentication,Authorization {
+public class JwtAuthorizeBean implements Authentication, Authorization {
 
     @Autowired
     private UserService userService;
-
-    private AuthorizeCache authorizeCache = new AuthorizeMapCache();
 
     @Override
     public AuthenticInfo doAuthentic(AuthorToken token) throws KeeperException {
@@ -49,11 +45,6 @@ public class KeeperJwtAuthorizeBean implements Authentication,Authorization {
         simpleAuthorizeInfo.setRoles(roles);
         simpleAuthorizeInfo.setPermissions(permissions);
         return simpleAuthorizeInfo;
-    }
-
-    @Override
-    public AuthorizeCache loadWithCache() {
-        return authorizeCache;
     }
 
 }
