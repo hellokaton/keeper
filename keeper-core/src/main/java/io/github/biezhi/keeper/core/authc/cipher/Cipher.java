@@ -11,8 +11,9 @@ import io.github.biezhi.keeper.core.authc.AuthorToken;
  */
 public interface Cipher {
 
-    Cipher MD5    = new CipherMd5();
-    Cipher EQUALS = new CipherEquals();
+    Cipher MD5    = new Md5Cipher();
+    Cipher EQUALS = new EqualsCipher();
+    Cipher BCRYPT = new BCryptCipher();
 
     boolean verify(AuthorToken token, AuthenticInfo authenticInfo);
 

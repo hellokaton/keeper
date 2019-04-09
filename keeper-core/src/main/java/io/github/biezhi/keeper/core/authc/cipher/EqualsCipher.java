@@ -4,20 +4,20 @@ import io.github.biezhi.keeper.core.authc.AuthenticInfo;
 import io.github.biezhi.keeper.core.authc.AuthorToken;
 
 /**
- * CipherEquals
+ * EqualsCipher
  *
  * @author biezhi
  * @since 2019/4/9
  */
-public class CipherEquals implements Cipher {
+public class EqualsCipher implements Cipher {
 
     private boolean ignoreCase;
 
-    public CipherEquals() {
+    public EqualsCipher() {
         this(false);
     }
 
-    public CipherEquals(boolean ignoreCase) {
+    public EqualsCipher(boolean ignoreCase) {
         this.ignoreCase = ignoreCase;
     }
 

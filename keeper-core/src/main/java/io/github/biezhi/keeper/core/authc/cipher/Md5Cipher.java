@@ -5,12 +5,12 @@ import io.github.biezhi.keeper.core.authc.AuthorToken;
 import io.github.biezhi.keeper.utils.CipherUtil;
 
 /**
- * CipherMd5
+ * Md5Cipher
  *
  * @author biezhi
  * @since 2019/4/9
  */
-public class CipherMd5 implements Cipher {
+public class Md5Cipher implements Cipher {
 
     @Override
     public boolean verify(AuthorToken token, AuthenticInfo authenticInfo) {
