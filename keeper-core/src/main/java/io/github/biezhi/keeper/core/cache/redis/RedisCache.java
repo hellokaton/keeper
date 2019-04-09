@@ -45,6 +45,12 @@ public class RedisCache<V> implements Cache<String, V> {
     }
 
     @Override
+    public void delWith(String keyPrefix) {
+        Set<String> keys = stringRedisTemplate.keys(keyPrefix + "*");
+        stringRedisTemplate.delete(keys);
+    }
+
+    @Override
     public boolean exists(String key) {
         if (null == key) {
             return false;

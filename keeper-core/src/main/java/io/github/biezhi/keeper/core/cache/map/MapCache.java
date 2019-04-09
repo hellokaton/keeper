@@ -44,6 +44,16 @@ public class MapCache<K, V> implements Cache<K, V> {
     }
 
     @Override
+    public void delWith(String keyPrefix) {
+        Set<K> keySet = keySet();
+        for (K k : keySet) {
+            if (k.toString().startsWith(keyPrefix)) {
+                remove(k);
+            }
+        }
+    }
+
+    @Override
     public boolean exists(K key) {
         return cache.containsKey(key);
     }

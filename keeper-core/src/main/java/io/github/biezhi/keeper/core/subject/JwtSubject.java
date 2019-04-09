@@ -23,6 +23,7 @@ import io.github.biezhi.keeper.core.authc.impl.SimpleAuthenticInfo;
 import io.github.biezhi.keeper.core.cache.Cache;
 import io.github.biezhi.keeper.core.jwt.JwtToken;
 import io.github.biezhi.keeper.exception.ExpiredException;
+import io.github.biezhi.keeper.utils.CipherUtil;
 import io.github.biezhi.keeper.utils.SpringContextUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -58,12 +59,12 @@ public class JwtSubject extends SimpleSubject {
             if (authenticCache().exists(username)) {
                 return authenticCache().get(username);
             }
-            this.authenticInfo = authentication().doAuthentic(() -> username);
-            if (null == this.authenticInfo) {
+            AuthenticInfo authenticInfo = authentication().doAuthentic(() -> username);
+            if (null == authenticInfo) {
                 return null;
             }
             authenticCache().set(username, authenticInfo);
-            return this.authenticInfo;
+            return authenticInfo;
         }
         return null;
     }
@@ -76,7 +77,6 @@ public class JwtSubject extends SimpleSubject {
         String jwtToken = jwtToken().create(token.username());
         authenticInfo.setPayload(jwtToken);
 
-        this.authenticInfo = authenticInfo;
         authenticCache().set(token.username(), authenticInfo);
         return authenticInfo;
     }
@@ -91,7 +91,8 @@ public class JwtSubject extends SimpleSubject {
         }
         Duration expire = jwtToken().getRenewExpire(authToken);
         if (null != expire && expire.toMillis() > 0) {
-            String key = String.format(LOGOUT_KEY, authToken);
+            String sign = authToken.substring(authToken.lastIndexOf("."));
+            String key = String.format(LOGOUT_KEY, sign);
             logoutCache().set(key, "1", expire);
         }
         authenticCache().remove(username);
@@ -126,9 +127,12 @@ public class JwtSubject extends SimpleSubject {
         String  username   = jwtToken().getUsername(token);
         boolean canRefresh = jwtToken().canRenew(token);
         if (canRefresh) {
-            this.authenticInfo = authentication().doAuthentic(() -> username);
             String newToken = jwtToken().refresh(username);
             log.info("renew success, token: {}", newToken);
+
+            AuthenticInfo authenticInfo = authentication().doAuthentic(() -> username);
+            authenticCache().set(username, authenticInfo);
+
             return null != newToken;
         }
         return false;

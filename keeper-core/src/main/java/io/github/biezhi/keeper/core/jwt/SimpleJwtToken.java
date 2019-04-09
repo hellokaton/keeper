@@ -24,6 +24,7 @@ import io.github.biezhi.keeper.Keeper;
 import io.github.biezhi.keeper.core.cache.Cache;
 import io.github.biezhi.keeper.core.config.JwtConfig;
 import io.github.biezhi.keeper.exception.KeeperException;
+import io.github.biezhi.keeper.utils.CipherUtil;
 import io.github.biezhi.keeper.utils.DateUtil;
 import io.github.biezhi.keeper.utils.SpringContextUtil;
 import io.github.biezhi.keeper.utils.WebUtil;
@@ -102,7 +103,8 @@ public class SimpleJwtToken implements JwtToken {
             return true;
         }
 
-        String key = String.format(LOGOUT_KEY, token);
+        String sign = token.substring(token.lastIndexOf("."));
+        String key = String.format(LOGOUT_KEY, sign);
         if (logoutCache().exists(key)) {
             return true;
         }
@@ -123,7 +125,8 @@ public class SimpleJwtToken implements JwtToken {
             return false;
         }
 
-        String key = String.format(LOGOUT_KEY, token);
+        String sign = token.substring(token.lastIndexOf("."));
+        String key = String.format(LOGOUT_KEY, sign);
         if (logoutCache().exists(key)) {
             return false;
         }

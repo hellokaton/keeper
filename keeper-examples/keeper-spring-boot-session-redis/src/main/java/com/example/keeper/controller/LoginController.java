@@ -1,12 +1,10 @@
 package com.example.keeper.controller;
 
 import com.example.keeper.model.Response;
-import com.example.keeper.model.User;
-import com.example.keeper.service.UserService;
 import io.github.biezhi.keeper.Keeper;
+import io.github.biezhi.keeper.core.authc.impl.SimpleAuthorToken;
+import io.github.biezhi.keeper.core.subject.Subject;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,15 +14,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping
 public class LoginController {
 
-    @Autowired
-    private UserService userService;
-
     @PostMapping("/login")
     public Response<String> login(String username, String password) {
 
-        User user = userService.login(username, password);
-
-        Keeper.getSubject().login(user::getUsername);
+        Keeper.getSubject().login(
+                new SimpleAuthorToken(username, password, true));
 
         return Response.<String>builder().code(200).data("登录成功").build();
     }
@@ -34,7 +28,7 @@ public class LoginController {
      *
      * @return
      */
-    @GetMapping("/guest")
+    @RequestMapping("/guest")
     public Response<String> guest() {
         return Response.<String>builder().code(200).data("guest!").build();
     }
@@ -44,9 +38,11 @@ public class LoginController {
      *
      * @return
      */
-    @GetMapping("/hello")
+    @RequestMapping("/hello")
     public Response<String> hello() {
-        return Response.<String>builder().code(200).data("i,m hello!").build();
+        Subject subject  = Keeper.getSubject();
+        String  username = subject.authenticInfo().username();
+        return Response.<String>builder().code(200).data("i,m " + username).build();
     }
 
     @RequestMapping("/logout")

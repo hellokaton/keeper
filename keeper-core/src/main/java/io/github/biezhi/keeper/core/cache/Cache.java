@@ -32,6 +32,8 @@ public interface Cache<K, V> {
 
     V get(K key);
 
+    void delWith(String keyPrefix);
+
     boolean exists(K key);
 
     boolean expire(K key);

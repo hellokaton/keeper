@@ -3,8 +3,9 @@ package com.example.keeper.config;
 import com.example.keeper.model.Response;
 import com.example.keeper.service.UserService;
 import io.github.biezhi.keeper.Keeper;
+import io.github.biezhi.keeper.core.cache.redis.AuthenticRedisCache;
 import io.github.biezhi.keeper.core.cache.redis.AuthorizeRedisCache;
-import io.github.biezhi.keeper.core.cache.redis.JwtSubjectRedisStorage;
+import io.github.biezhi.keeper.core.cache.redis.LogoutRedisCache;
 import io.github.biezhi.keeper.core.web.filter.JwtAuthenticFilter;
 import io.github.biezhi.keeper.enums.SubjectType;
 import io.github.biezhi.keeper.utils.WebUtil;
@@ -65,7 +66,8 @@ public class KeeperBeanConfig extends WebMvcConfigurationSupport {
     @Primary
     public Keeper initKeeper(Keeper keeper, StringRedisTemplate stringRedisTemplate) {
         keeper.setSubjectType(SubjectType.JWT);
-        keeper.setSubjectStorage(new JwtSubjectRedisStorage(stringRedisTemplate));
+        keeper.setAuthenticInfoCache(new AuthenticRedisCache(stringRedisTemplate));
+        keeper.setLogoutCache(new LogoutRedisCache(stringRedisTemplate));
         return keeper;
     }
 

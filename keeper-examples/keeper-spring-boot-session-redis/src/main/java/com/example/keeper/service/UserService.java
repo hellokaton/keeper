@@ -10,10 +10,10 @@ import java.util.Set;
 @Service
 public class UserService {
 
-    public User login(String username, String password) {
+    public User findByUsername(String username) {
         User user = new User();
         user.setUsername(username);
-        user.setPassword(password);
+        user.setPassword("123456");
         return user;
     }
 

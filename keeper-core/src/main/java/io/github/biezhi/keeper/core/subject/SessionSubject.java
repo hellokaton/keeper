@@ -50,16 +50,12 @@ public class SessionSubject extends SimpleSubject {
 
     @Override
     public AuthenticInfo authenticInfo() {
-        if (null != this.authenticInfo) {
-            return this.authenticInfo;
-        }
         if (isLogin()) {
             HttpSession session = WebUtil.currentSession();
             if (null == session) {
                 return null;
             }
-            this.authenticInfo = (AuthenticInfo) session.getAttribute(keeperConst.KEEPER_SESSION_KEY);
-            return this.authenticInfo;
+            return (AuthenticInfo) session.getAttribute(keeperConst.KEEPER_SESSION_KEY);
         }
         return null;
     }
@@ -71,7 +67,7 @@ public class SessionSubject extends SimpleSubject {
             return null;
         }
 
-        this.authenticInfo = super.login(token);
+        AuthenticInfo authenticInfo = super.login(token);
 
         session.setAttribute(keeperConst.KEEPER_SESSION_KEY, authenticInfo);
 
@@ -129,7 +125,7 @@ public class SessionSubject extends SimpleSubject {
         if (null == username) {
             return false;
         }
-        this.authenticInfo = authentication().doAuthentic(() -> username);
+        AuthenticInfo authenticInfo = authentication().doAuthentic(() -> username);
         session.setAttribute(keeperConst.KEEPER_SESSION_KEY, authenticInfo);
         return true;
     }

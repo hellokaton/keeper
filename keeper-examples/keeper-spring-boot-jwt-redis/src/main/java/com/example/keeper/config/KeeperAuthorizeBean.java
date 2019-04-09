@@ -9,11 +9,13 @@ import io.github.biezhi.keeper.core.authc.impl.SimpleAuthorizeInfo;
 import io.github.biezhi.keeper.core.cache.AuthorizeCache;
 import io.github.biezhi.keeper.core.cache.redis.AuthorizeRedisCache;
 import io.github.biezhi.keeper.exception.KeeperException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.time.Duration;
 import java.util.Set;
 
+@Slf4j
 public class KeeperAuthorizeBean implements Authentication, Authorization {
 
     private AuthorizeCache authorizeCache;
@@ -26,6 +28,9 @@ public class KeeperAuthorizeBean implements Authentication, Authorization {
 
     @Override
     public AuthenticInfo doAuthentic(AuthorToken token) throws KeeperException {
+
+        log.info("doAuthentic :: {}", token.username());
+
         User user = userService.findByUsername(token.username());
 
         return new SimpleAuthenticInfo(
@@ -43,6 +48,8 @@ public class KeeperAuthorizeBean implements Authentication, Authorization {
     @Override
     public AuthorizeInfo doAuthorization(AuthenticInfo token) throws KeeperException {
         String username = token.username();
+
+        log.info("doAuthorization :: {}", username);
 
         Set<String> roles       = userService.findRoles(username);
         Set<String> permissions = userService.findPermissions(username);

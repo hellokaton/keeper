@@ -39,13 +39,6 @@ import java.util.Set;
 @Data
 public abstract class SimpleSubject implements Subject {
 
-    protected AuthenticInfo authenticInfo;
-
-    @Override
-    public AuthenticInfo authenticInfo() {
-        return authenticInfo;
-    }
-
     protected Authentication authentication() {
         return SpringContextUtil.getBean(Authentication.class);
     }
@@ -57,7 +50,7 @@ public abstract class SimpleSubject implements Subject {
     @JsonIgnore
     @Override
     public AuthenticInfo login(AuthorToken token) {
-        this.authenticInfo = authentication().doAuthentic(token);
+        AuthenticInfo authenticInfo = authentication().doAuthentic(token);
 
         if (null == authenticInfo) {
             throw UnauthenticException.build("AuthenticInfo can not be null.");

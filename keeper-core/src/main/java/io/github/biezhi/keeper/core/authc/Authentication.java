@@ -4,6 +4,8 @@ import io.github.biezhi.keeper.core.authc.cipher.Cipher;
 import io.github.biezhi.keeper.exception.KeeperException;
 
 /**
+ * Authentication
+ *
  * @author biezhi
  * @date 2019-04-09
  */
