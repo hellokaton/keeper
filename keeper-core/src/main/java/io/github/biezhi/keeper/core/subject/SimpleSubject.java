@@ -20,7 +20,7 @@ import io.github.biezhi.keeper.Keeper;
 import io.github.biezhi.keeper.annotation.Permissions;
 import io.github.biezhi.keeper.annotation.Roles;
 import io.github.biezhi.keeper.core.authc.*;
-import io.github.biezhi.keeper.core.authc.impl.SimpleToken;
+import io.github.biezhi.keeper.core.authc.impl.SimpleAuthorToken;
 import io.github.biezhi.keeper.core.authc.impl.Tokens;
 import io.github.biezhi.keeper.core.cache.AuthorizeCache;
 import io.github.biezhi.keeper.enums.Logical;
@@ -39,7 +39,7 @@ import java.util.Set;
 @Data
 public abstract class SimpleSubject implements Subject {
 
-    protected SimpleToken token;
+    protected SimpleAuthorToken token;
 
     /**
      * Identifies the current user's logon status,

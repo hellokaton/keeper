@@ -15,16 +15,21 @@
  */
 package io.github.biezhi.keeper.core.subject;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTCreator;
+import com.auth0.jwt.algorithms.Algorithm;
 import io.github.biezhi.keeper.Keeper;
 import io.github.biezhi.keeper.core.authc.AuthenticInfo;
 import io.github.biezhi.keeper.core.authc.Authentication;
 import io.github.biezhi.keeper.core.authc.AuthorToken;
+import io.github.biezhi.keeper.core.authc.cipher.Cipher;
 import io.github.biezhi.keeper.core.config.SessionConfig;
 import io.github.biezhi.keeper.exception.ExpiredException;
 import io.github.biezhi.keeper.exception.UnauthenticException;
+import io.github.biezhi.keeper.keeperConst;
+import io.github.biezhi.keeper.utils.DateUtil;
 import io.github.biezhi.keeper.utils.SpringContextUtil;
 import io.github.biezhi.keeper.utils.WebUtil;
-import io.github.biezhi.keeper.keeperConst;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -32,6 +37,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.util.Date;
 
 /**
  * SessionSubject
@@ -54,27 +60,27 @@ public class SessionSubject extends SimpleSubject {
         Authentication authentication = SpringContextUtil.getBean(Authentication.class);
         AuthenticInfo  authenticInfo  = authentication.doAuthentic(token);
 
-        // 只有登录的时候验证密码
-        if (!authenticInfo.password().equals(token.password())) {
+        Cipher cipher = authentication.cipher();
+
+        if (null != cipher && !cipher.verify(
+                token.password(), authenticInfo.password())) {
             throw UnauthenticException.build();
-        } else {
-            session.setAttribute(keeperConst.KEEPER_SESSION_KEY, authenticInfo);
         }
 
-        // remember me TODO
-        SessionConfig config = SpringContextUtil.getBean(Keeper.class).getSessionConfig();
-        if (null != config.getRenewExpires() && config.getRenewExpires().toMillis() > 0) {
+        session.setAttribute(keeperConst.KEEPER_SESSION_KEY, authenticInfo);
+
+        // remember me
+        SessionConfig config = sessionConfig();
+        if (token.remember() && null != config.getRenewExpires()) {
             HttpServletResponse response = WebUtil.currentResponse();
 
-            String kidValue = "abcdefg" + config.getSecret();
+            String kidValue = generateToken(token.username());
 
             Cookie cookie = new Cookie(config.getCookieName(), kidValue);
             cookie.setMaxAge((int) config.getRenewExpires().toMillis() / 1000);
             response.addCookie(cookie);
         }
 
-        Keeper keeper = SpringContextUtil.getBean(Keeper.class);
-        keeper.addSubject(session.getId(), this, null);
         return authenticInfo;
     }
 
@@ -92,7 +98,7 @@ public class SessionSubject extends SimpleSubject {
 
     @Override
     public boolean renew() {
-        SessionConfig      config  = SpringContextUtil.getBean(Keeper.class).getSessionConfig();
+        SessionConfig      config  = sessionConfig();
         HttpServletRequest request = WebUtil.currentRequest();
 
         String   kid     = "";
@@ -125,6 +131,20 @@ public class SessionSubject extends SimpleSubject {
             Keeper keeper = SpringContextUtil.getBean(Keeper.class);
             keeper.removeSubject(session.getId());
         }
+    }
+
+    private SessionConfig sessionConfig() {
+        return SpringContextUtil.getBean(Keeper.class).getSessionConfig();
+    }
+
+    private String generateToken(String username) {
+        SessionConfig config = sessionConfig();
+        JWTCreator.Builder builder = JWT.create()
+                .withSubject(username)
+                .withIssuedAt(new Date())
+                .withExpiresAt(DateUtil.plus(config.getRenewExpires().toMillis()));
+
+        return builder.sign(Algorithm.HMAC256(config.getSecret()));
     }
 
 }

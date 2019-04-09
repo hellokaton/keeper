@@ -19,6 +19,17 @@ public class SimpleAuthenticInfo implements AuthenticInfo {
     private Object              payload;
     private Map<String, Object> claims;
 
+    public SimpleAuthenticInfo(String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
+
+    public SimpleAuthenticInfo(String username, String password, Object payload) {
+        this.username = username;
+        this.password = password;
+        this.payload = payload;
+    }
+
     @Override
     public String username() {
         return username;

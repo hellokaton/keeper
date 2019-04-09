@@ -1,5 +1,6 @@
 package io.github.biezhi.keeper.core.authc;
 
+import io.github.biezhi.keeper.core.authc.cipher.Cipher;
 import io.github.biezhi.keeper.exception.KeeperException;
 
 /**
@@ -9,5 +10,9 @@ import io.github.biezhi.keeper.exception.KeeperException;
 public interface Authentication {
 
     AuthenticInfo doAuthentic(AuthorToken token) throws KeeperException;
+
+    default Cipher cipher() {
+        return null;
+    }
 
 }

@@ -22,11 +22,11 @@ import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import io.github.biezhi.keeper.core.config.JwtConfig;
 import io.github.biezhi.keeper.exception.KeeperException;
+import io.github.biezhi.keeper.utils.DateUtil;
 import io.github.biezhi.keeper.utils.WebUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.UnsupportedEncodingException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Calendar;
@@ -63,22 +63,18 @@ public class SimpleJwtToken implements JwtToken {
 
     @Override
     public String create(String username) {
-        try {
-            JWTCreator.Builder builder = JWT.create()
-                    .withSubject(username)
-                    .withIssuedAt(new Date())
-                    .withExpiresAt(datePlus(config.getExpires().toMillis()));
+        JWTCreator.Builder builder = JWT.create()
+                .withSubject(username)
+                .withIssuedAt(new Date())
+                .withExpiresAt(DateUtil.plus(config.getExpires().toMillis()));
 
-            if (null != config.getRenewExpires() &&
-                    config.getRenewExpires().toMillis() > 0) {
+        if (null != config.getRenewExpires() &&
+                config.getRenewExpires().toMillis() > 0) {
 
-                builder.withClaim(REFRESH_EXPIRES_AT,
-                        datePlus(config.getRenewExpires().toMillis()));
-            }
-            return builder.sign(Algorithm.HMAC256(config.getSecret()));
-        } catch (UnsupportedEncodingException e) {
-            return null;
+            builder.withClaim(REFRESH_EXPIRES_AT,
+                    DateUtil.plus(config.getRenewExpires().toMillis()));
         }
+        return builder.sign(Algorithm.HMAC256(config.getSecret()));
     }
 
     @Override
@@ -148,10 +144,6 @@ public class SimpleJwtToken implements JwtToken {
         request.setAttribute(NEW_TOKEN, token);
         response.setHeader(config.getHeader(), token);
         return token;
-    }
-
-    private Date datePlus(long millis) {
-        return new Date(System.currentTimeMillis() + millis);
     }
 
     private Optional<DecodedJWT> parseToken(String token) {

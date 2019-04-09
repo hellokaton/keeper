@@ -35,11 +35,11 @@ public class Tokens {
         return builder;
     }
 
-    public static SimpleToken build(AuthorToken authorToken) {
-        SimpleToken simpleToken = new SimpleToken();
-        simpleToken.setUsername(authorToken.username());
-        simpleToken.setPassword((authorToken.password()));
-        return simpleToken;
+    public static SimpleAuthorToken build(AuthorToken authorToken) {
+        SimpleAuthorToken simpleAuthorToken = new SimpleAuthorToken();
+        simpleAuthorToken.setUsername(authorToken.username());
+        simpleAuthorToken.setPassword((authorToken.password()));
+        return simpleAuthorToken;
     }
 
     public static class AuthorTokenBuilder {
@@ -52,10 +52,10 @@ public class Tokens {
         }
 
         public AuthorToken build() {
-            SimpleToken simpleToken = new SimpleToken();
-            simpleToken.setUsername(username);
-            simpleToken.setPassword(password);
-            return simpleToken;
+            SimpleAuthorToken simpleAuthorToken = new SimpleAuthorToken();
+            simpleAuthorToken.setUsername(username);
+            simpleAuthorToken.setPassword(password);
+            return simpleAuthorToken;
         }
 
     }

@@ -3,6 +3,7 @@ package com.example.keeper.config;
 import com.example.keeper.model.User;
 import com.example.keeper.service.UserService;
 import io.github.biezhi.keeper.core.authc.*;
+import io.github.biezhi.keeper.core.authc.cipher.Cipher;
 import io.github.biezhi.keeper.core.authc.impl.SimpleAuthenticInfo;
 import io.github.biezhi.keeper.core.authc.impl.SimpleAuthorizeInfo;
 import io.github.biezhi.keeper.exception.KeeperException;
@@ -21,10 +22,16 @@ public class AuthorizationBean implements Authentication, Authorization {
     public AuthenticInfo doAuthentic(AuthorToken token) throws KeeperException {
         User user = userService.findByUsername(token.username());
 
-        SimpleAuthenticInfo authenticInfo = new SimpleAuthenticInfo();
-        authenticInfo.setUsername(token.username());
-        authenticInfo.setPayload(user);
-        return authenticInfo;
+        return new SimpleAuthenticInfo(
+                user.getUsername(),
+                user.getPassword(),
+                user
+        );
+    }
+
+    @Override
+    public Cipher cipher() {
+        return Cipher.MD5;
     }
 
     @Override
