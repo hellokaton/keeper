@@ -22,12 +22,9 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import io.github.biezhi.keeper.Keeper;
 import io.github.biezhi.keeper.core.authc.AuthenticInfo;
-import io.github.biezhi.keeper.core.authc.Authentication;
 import io.github.biezhi.keeper.core.authc.AuthorToken;
-import io.github.biezhi.keeper.core.authc.cipher.Cipher;
 import io.github.biezhi.keeper.core.config.SessionConfig;
 import io.github.biezhi.keeper.exception.ExpiredException;
-import io.github.biezhi.keeper.exception.WrongPasswordException;
 import io.github.biezhi.keeper.keeperConst;
 import io.github.biezhi.keeper.utils.DateUtil;
 import io.github.biezhi.keeper.utils.SpringContextUtil;
@@ -58,14 +55,7 @@ public class SessionSubject extends SimpleSubject {
             return null;
         }
 
-        this.authenticInfo = authentication().doAuthentic(token);
-
-        Cipher cipher = authentication().cipher();
-
-        if (null != cipher && !cipher.verify(
-                token.password(), authenticInfo.password())) {
-            throw WrongPasswordException.build();
-        }
+        this.authenticInfo = super.login(token);
 
         session.setAttribute(keeperConst.KEEPER_SESSION_KEY, authenticInfo);
 
@@ -149,10 +139,6 @@ public class SessionSubject extends SimpleSubject {
                 break;
             }
         }
-    }
-
-    private Authentication authentication() {
-        return SpringContextUtil.getBean(Authentication.class);
     }
 
     private SessionConfig sessionConfig() {

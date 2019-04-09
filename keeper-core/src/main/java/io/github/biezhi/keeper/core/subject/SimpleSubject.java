@@ -19,11 +19,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.github.biezhi.keeper.Keeper;
 import io.github.biezhi.keeper.annotation.Permissions;
 import io.github.biezhi.keeper.annotation.Roles;
-import io.github.biezhi.keeper.core.authc.AuthenticInfo;
-import io.github.biezhi.keeper.core.authc.Authorization;
-import io.github.biezhi.keeper.core.authc.AuthorizeInfo;
+import io.github.biezhi.keeper.core.authc.*;
+import io.github.biezhi.keeper.core.authc.cipher.Cipher;
 import io.github.biezhi.keeper.core.cache.AuthorizeCache;
 import io.github.biezhi.keeper.enums.Logical;
+import io.github.biezhi.keeper.exception.WrongPasswordException;
 import io.github.biezhi.keeper.utils.SpringContextUtil;
 import lombok.Data;
 
@@ -42,6 +42,24 @@ public abstract class SimpleSubject implements Subject {
 
     @Override
     public AuthenticInfo authenticInfo() {
+        return authenticInfo;
+    }
+
+    protected Authentication authentication() {
+        return SpringContextUtil.getBean(Authentication.class);
+    }
+
+    @JsonIgnore
+    @Override
+    public AuthenticInfo login(AuthorToken token) {
+        this.authenticInfo = authentication().doAuthentic(token);
+
+        Cipher cipher = authentication().cipher();
+
+        if (null != cipher && !cipher.verify(
+                token.password(), authenticInfo.password())) {
+            throw WrongPasswordException.build();
+        }
         return authenticInfo;
     }
 

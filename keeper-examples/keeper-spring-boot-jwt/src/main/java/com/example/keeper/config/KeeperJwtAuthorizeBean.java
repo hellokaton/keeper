@@ -1,7 +1,9 @@
 package com.example.keeper.config;
 
+import com.example.keeper.model.User;
 import com.example.keeper.service.UserService;
 import io.github.biezhi.keeper.core.authc.*;
+import io.github.biezhi.keeper.core.authc.impl.SimpleAuthenticInfo;
 import io.github.biezhi.keeper.core.authc.impl.SimpleAuthorizeInfo;
 import io.github.biezhi.keeper.core.cache.AuthorizeCache;
 import io.github.biezhi.keeper.core.cache.map.AuthorizeMapCache;
@@ -12,12 +14,23 @@ import org.springframework.stereotype.Component;
 import java.util.Set;
 
 @Component
-public class KeeperJwtAuthorizeBean implements Authorization {
+public class KeeperJwtAuthorizeBean implements Authentication,Authorization {
 
     @Autowired
     private UserService userService;
 
     private AuthorizeCache authorizeCache = new AuthorizeMapCache();
+
+    @Override
+    public AuthenticInfo doAuthentic(AuthorToken token) throws KeeperException {
+        User user = userService.findByUsername(token.username());
+
+        return new SimpleAuthenticInfo(
+                user.getUsername(),
+                user.getPassword(),
+                user
+        );
+    }
 
     @Override
     public AuthorizeInfo doAuthorization(AuthenticInfo token) throws KeeperException {

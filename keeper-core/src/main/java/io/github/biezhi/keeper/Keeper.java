@@ -56,16 +56,7 @@ public class Keeper {
         if (SubjectType.SESSION.equals(keeper.subjectType)) {
             return new SessionSubject();
         } else if (SubjectType.JWT.equals(keeper.subjectType)) {
-            JwtToken jwtToken = SpringContextUtil.getBean(JwtToken.class);
-            String   token    = jwtToken.getAuthToken();
-            String   username = jwtToken.getUsername(token);
-            if (null == username) {
-                return new JwtSubject();
-            }
-            if (!keeper.subjectStorage.exists(username)) {
-                return new JwtSubject();
-            }
-            return keeper.subjectStorage.get(username);
+            return new JwtSubject();
         } else {
             return new SessionSubject();
         }

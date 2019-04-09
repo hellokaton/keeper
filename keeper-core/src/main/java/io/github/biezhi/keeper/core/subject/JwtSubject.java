@@ -26,12 +26,14 @@ import io.github.biezhi.keeper.exception.ExpiredException;
 import io.github.biezhi.keeper.utils.SpringContextUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author biezhi
  * @date 2019-04-05
  */
 @Data
+@Slf4j
 @JsonIgnoreProperties
 @EqualsAndHashCode(callSuper = true)
 public class JwtSubject extends SimpleSubject {
@@ -39,12 +41,12 @@ public class JwtSubject extends SimpleSubject {
     @JsonIgnore
     @Override
     public AuthenticInfo login(AuthorToken token) {
-        Keeper keeper = SpringContextUtil.getBean(Keeper.class);
-        keeper.addSubject(token.username(), this, null);
-        String jwtToken = jwtToken().create(token.username());
+        SimpleAuthenticInfo authenticInfo = (SimpleAuthenticInfo) super.login(token);
 
-        SimpleAuthenticInfo authenticInfo = new SimpleAuthenticInfo();
+        String jwtToken = jwtToken().create(token.username());
         authenticInfo.setPayload(jwtToken);
+
+        this.authenticInfo = authenticInfo;
         return authenticInfo;
     }
 
@@ -69,9 +71,7 @@ public class JwtSubject extends SimpleSubject {
         }
 
         String username = jwtToken().getUsername(token);
-        Keeper keeper   = SpringContextUtil.getBean(Keeper.class);
-
-        if (!keeper.existsSubject(username)) {
+        if (null == username) {
             return false;
         }
 
@@ -91,7 +91,9 @@ public class JwtSubject extends SimpleSubject {
         String  username   = jwtToken().getUsername(token);
         boolean canRefresh = jwtToken().canRefresh(token);
         if (canRefresh) {
+            this.authenticInfo = authentication().doAuthentic(() -> username);
             String newToken = jwtToken().refresh(username);
+            log.info("renew success, token: {}", newToken);
             return null != newToken;
         }
         return false;
