@@ -39,8 +39,8 @@ public class MapCache<K, V> implements Cache<K, V> {
     }
 
     @Override
-    public V get(K key) {
-        return cache.get(key);
+    public <T> T get(K key, Class<T> type) {
+        return (T) cache.get(key);
     }
 
     @Override

@@ -7,7 +7,6 @@ import io.github.biezhi.keeper.core.authc.cipher.Cipher;
 import io.github.biezhi.keeper.core.authc.impl.SimpleAuthenticInfo;
 import io.github.biezhi.keeper.core.authc.impl.SimpleAuthorizeInfo;
 import io.github.biezhi.keeper.core.cache.AuthorizeCache;
-import io.github.biezhi.keeper.core.cache.redis.AuthorizeRedisCache;
 import io.github.biezhi.keeper.exception.KeeperException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -23,7 +22,7 @@ public class KepperAuthorizeBean implements Authentication, Authorization {
 
     public KepperAuthorizeBean(UserService userService, StringRedisTemplate stringRedisTemplate) {
         this.userService = userService;
-        this.authorizeCache = new AuthorizeRedisCache(stringRedisTemplate, Duration.ofMinutes(10));
+//        this.authorizeCache = new AuthorizeRedisCache(stringRedisTemplate, Duration.ofMinutes(10));
     }
 
     @Override

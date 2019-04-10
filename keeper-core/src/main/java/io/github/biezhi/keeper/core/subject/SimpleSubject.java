@@ -44,12 +44,8 @@ public abstract class SimpleSubject implements Subject {
         return SpringContextUtil.getBean(Authentication.class);
     }
 
-    protected Cache<String, String> logoutCache() {
-        return keeper().getLogoutCache();
-    }
-
-    protected Cache<String, AuthenticInfo> authenticCache() {
-        return keeper().getAuthenticInfoCache();
+    protected Cache<String, String> keeperCache() {
+        return keeper().getKeeperCache();
     }
 
     protected Keeper keeper() {

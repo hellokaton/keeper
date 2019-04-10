@@ -15,6 +15,7 @@
  */
 package io.github.biezhi.keeper.core.cache;
 
+
 import java.util.Set;
 
 /**
@@ -29,7 +30,7 @@ public interface Cache<K, V> {
 
     void set(K key, V value, long millis);
 
-    V get(K key);
+    <T> T get(K key, Class<T> type);
 
     void delWith(String keyPrefix);
 

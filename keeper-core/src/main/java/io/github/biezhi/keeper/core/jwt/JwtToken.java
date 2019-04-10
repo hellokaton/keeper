@@ -37,6 +37,8 @@ public interface JwtToken {
      */
     String getUsername(String token);
 
+    long getCreateTime(String token);
+
     /**
      * Verify that the incoming token has expired
      *

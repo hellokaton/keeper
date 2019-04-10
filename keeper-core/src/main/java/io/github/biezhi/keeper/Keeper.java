@@ -15,7 +15,6 @@
  */
 package io.github.biezhi.keeper;
 
-import io.github.biezhi.keeper.core.authc.AuthenticInfo;
 import io.github.biezhi.keeper.core.authc.Authorization;
 import io.github.biezhi.keeper.core.cache.Cache;
 import io.github.biezhi.keeper.core.cache.map.MapCache;
@@ -45,8 +44,7 @@ public class Keeper {
 
     private SessionConfig sessionConfig;
 
-    private Cache<String, AuthenticInfo> authenticInfoCache = new MapCache<>();
-    private Cache<String, String>        logoutCache        = new MapCache<>();
+    private Cache<String, String> keeperCache = new MapCache<>();
 
     public static Subject getSubject() {
         Keeper keeper = SpringContextUtil.getBean(Keeper.class);
@@ -91,19 +89,11 @@ public class Keeper {
         this.sessionConfig = sessionConfig;
     }
 
-    public Cache<String, AuthenticInfo> getAuthenticInfoCache() {
-        return authenticInfoCache;
+    public Cache<String, String> getKeeperCache() {
+        return keeperCache;
     }
 
-    public void setAuthenticInfoCache(Cache<String, AuthenticInfo> authenticInfoCache) {
-        this.authenticInfoCache = authenticInfoCache;
-    }
-
-    public Cache<String, String> getLogoutCache() {
-        return logoutCache;
-    }
-
-    public void setLogoutCache(Cache<String, String> logoutCache) {
-        this.logoutCache = logoutCache;
+    public void setKeeperCache(Cache<String, String> keeperCache) {
+        this.keeperCache = keeperCache;
     }
 }

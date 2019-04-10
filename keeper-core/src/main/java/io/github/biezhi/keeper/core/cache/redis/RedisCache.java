@@ -1,7 +1,6 @@
 package io.github.biezhi.keeper.core.cache.redis;
 
 import io.github.biezhi.keeper.core.cache.Cache;
-import io.github.biezhi.keeper.exception.KeeperException;
 import io.github.biezhi.keeper.utils.JsonUtil;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
@@ -18,6 +17,10 @@ public class RedisCache<V> implements Cache<String, V> {
 
     protected final String prefix;
 
+    public RedisCache(StringRedisTemplate stringRedisTemplate) {
+        this(stringRedisTemplate, "");
+    }
+
     public RedisCache(StringRedisTemplate stringRedisTemplate, String prefix) {
         this.stringRedisTemplate = stringRedisTemplate;
         this.prefix = prefix;
@@ -25,22 +28,40 @@ public class RedisCache<V> implements Cache<String, V> {
 
     @Override
     public void set(String key, V value) {
-        String json = JsonUtil.toJSONString(value);
-        stringRedisTemplate.opsForValue().set(prefix + key, json);
+        if (value instanceof String) {
+            stringRedisTemplate.opsForValue().set(prefix + key, value.toString());
+        } else {
+            String json = JsonUtil.toJSONString(value);
+            stringRedisTemplate.opsForValue().set(prefix + key, json);
+        }
     }
 
     @Override
     public void set(String key, V value, long millis) {
-        String json = JsonUtil.toJSONString(value);
-        stringRedisTemplate.opsForValue().set(prefix + key, json);
+        if (value instanceof String) {
+            stringRedisTemplate.opsForValue().set(prefix + key, value.toString());
+        } else {
+            String json = JsonUtil.toJSONString(value);
+            stringRedisTemplate.opsForValue().set(prefix + key, json);
+        }
         if (millis > 0) {
             stringRedisTemplate.expire(prefix + key, millis, TimeUnit.MILLISECONDS);
         }
     }
 
     @Override
-    public V get(String key) {
-        throw new KeeperException("please override get method.");
+    public <T> T get(String key, Class<T> type) {
+        String json = stringRedisTemplate.opsForValue().get(key);
+        if (String.class.equals(type)) {
+            return (T) json;
+        }
+        if (Integer.class.equals(type)) {
+            return (T) Integer.valueOf(json);
+        }
+        if (Long.class.equals(type)) {
+            return (T) Long.valueOf(json);
+        }
+        return JsonUtil.toBean(json, type);
     }
 
     @Override

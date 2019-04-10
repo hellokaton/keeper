@@ -22,15 +22,12 @@ import io.github.biezhi.keeper.core.authc.AuthorToken;
 import io.github.biezhi.keeper.core.authc.impl.SimpleAuthenticInfo;
 import io.github.biezhi.keeper.core.jwt.JwtToken;
 import io.github.biezhi.keeper.exception.ExpiredException;
+import io.github.biezhi.keeper.utils.JsonUtil;
 import io.github.biezhi.keeper.utils.SpringContextUtil;
 import io.github.biezhi.keeper.utils.StringUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
-
-import java.time.Duration;
-
-import static io.github.biezhi.keeper.keeperConst.LOGOUT_KEY;
 
 /**
  * @author biezhi
@@ -53,14 +50,18 @@ public class JwtSubject extends SimpleSubject {
         }
         String token    = jwtToken().getAuthToken();
         String username = jwtToken().getUsername(token);
-        if (authenticCache().exists(username)) {
-            return authenticCache().get(username);
+
+        String authenticInfoKey = String.format("keeper:authentic:%s", username);
+
+        if (keeperCache().exists(authenticInfoKey)) {
+            return keeperCache().get(authenticInfoKey, SimpleAuthenticInfo.class);
         }
         AuthenticInfo authenticInfo = authentication().doAuthentic(() -> username);
         if (null == authenticInfo) {
             return null;
         }
-        authenticCache().set(username, authenticInfo);
+
+        keeperCache().set(authenticInfoKey, JsonUtil.toJSONString(authenticInfo));
         return authenticInfo;
     }
 
@@ -70,9 +71,15 @@ public class JwtSubject extends SimpleSubject {
         SimpleAuthenticInfo authenticInfo = (SimpleAuthenticInfo) super.login(token);
 
         String jwtToken = jwtToken().create(token.username(), authenticInfo.claims());
+
+        // 存储登录状态，处理注销、重置密码、token 过期等问题
+        this.recordLogin(token.username(), jwtToken);
+
         authenticInfo.setPayload(jwtToken);
 
-        authenticCache().set(token.username(), authenticInfo);
+        // 存储登录成功的信息
+        String authenticInfoKey = String.format("keeper:authentic:%s", token.username());
+        keeperCache().set(authenticInfoKey, JsonUtil.toJSONString(authenticInfo));
         return authenticInfo;
     }
 
@@ -84,15 +91,10 @@ public class JwtSubject extends SimpleSubject {
         if (StringUtil.isEmpty(username)) {
             return;
         }
-        Duration renewExpire = jwtToken().getRenewExpire(token);
-        if (null != renewExpire && renewExpire.toMillis() > System.currentTimeMillis()) {
-            long expire = renewExpire.toMillis() - System.currentTimeMillis();
 
-            String sign = token.substring(token.lastIndexOf(".") + 1);
-            String key  = String.format(LOGOUT_KEY, sign);
-            logoutCache().set(key, "1", expire);
-        }
-        authenticCache().remove(username);
+        // 删除当前 token 的登录记录
+        String loginTokenKey = String.format("keeper:login:%s:%s", username, token.substring(token.lastIndexOf(".") + 1));
+        keeperCache().set(loginTokenKey, System.currentTimeMillis() / 1000 + "");
     }
 
     @JsonIgnore
@@ -108,8 +110,18 @@ public class JwtSubject extends SimpleSubject {
             return false;
         }
 
+        String loginTokenKey = String.format("keeper:login:%s:%s", username, token.substring(token.lastIndexOf(".") + 1));
+        if (keeperCache().exists(loginTokenKey)) {
+            long tokenCreateTime = jwtToken().getCreateTime(token);
+            Long time            = keeperCache().get(loginTokenKey, Long.class);
+            if (tokenCreateTime != time) {
+                return false;
+            }
+        }
+
         boolean expired = jwtToken().isExpired(token);
         if (expired) {
+            this.removeLoginToken(username, token);
             throw ExpiredException.build();
         }
         return true;
@@ -128,12 +140,27 @@ public class JwtSubject extends SimpleSubject {
         }
 
         AuthenticInfo authenticInfo = authentication().doAuthentic(() -> username);
-        authenticCache().set(username, authenticInfo);
+
+        String authenticInfoKey = String.format("keeper:authentic:%s", username);
+        keeperCache().set(authenticInfoKey, JsonUtil.toJSONString(authenticInfo));
 
         String newToken = jwtToken().refresh(username, authenticInfo.claims());
         log.info("renew success, token: {}", newToken);
 
-        return null != newToken;
+        // 存储登录状态，处理注销、重置密码、token 过期等问题
+        this.recordLogin(username, newToken);
+        return true;
+    }
+
+    private void recordLogin(String username, String token) {
+        String loginTokenKey = String.format("keeper:login:%s:%s", username, token.substring(token.lastIndexOf(".") + 1));
+        long   createTime    = jwtToken().getCreateTime(token);
+        keeperCache().set(loginTokenKey, createTime + "");
+    }
+
+    private void removeLoginToken(String username, String token) {
+        String loginTokenKey = String.format("keeper:login:%s:%s", username, token.substring(token.lastIndexOf(".") + 1));
+        keeperCache().remove(loginTokenKey);
     }
 
 }

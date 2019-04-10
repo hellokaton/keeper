@@ -90,30 +90,6 @@ public class SimpleJwtToken implements JwtToken {
         return builder.sign(Algorithm.HMAC256(config.getSecret()));
     }
 
-    private void addClaim(JWTCreator.Builder builder, String key, Object value) {
-        if (null == key || null == value) {
-            return;
-        }
-        if (value instanceof String) {
-            builder.withClaim(key, (String) value);
-        }
-        if (value instanceof Boolean) {
-            builder.withClaim(key, (Boolean) value);
-        }
-        if (value instanceof Long) {
-            builder.withClaim(key, (Long) value);
-        }
-        if (value instanceof Integer) {
-            builder.withClaim(key, (Integer) value);
-        }
-        if (value instanceof Double) {
-            builder.withClaim(key, (Double) value);
-        }
-        if (value instanceof Date) {
-            builder.withClaim(key, (Date) value);
-        }
-    }
-
     @Override
     public String getUsername(String token) {
         if (StringUtil.isEmpty(token)) {
@@ -124,8 +100,16 @@ public class SimpleJwtToken implements JwtToken {
                 .orElse(null);
     }
 
-    public Cache<String, String> logoutCache() {
-        return SpringContextUtil.getBean(Keeper.class).getLogoutCache();
+    @Override
+    public long getCreateTime(String token) {
+        if (StringUtil.isEmpty(token)) {
+            return 0L;
+        }
+        return this.parseToken(token)
+                .map(DecodedJWT::getIssuedAt)
+                .map(Date::getTime)
+                .map(time -> time / 1000)
+                .orElse(0L);
     }
 
     @Override
@@ -212,6 +196,34 @@ public class SimpleJwtToken implements JwtToken {
         request.setAttribute(NEW_TOKEN, token);
         response.setHeader(config.getHeader(), token);
         return token;
+    }
+
+    private void addClaim(JWTCreator.Builder builder, String key, Object value) {
+        if (null == key || null == value) {
+            return;
+        }
+        if (value instanceof String) {
+            builder.withClaim(key, (String) value);
+        }
+        if (value instanceof Boolean) {
+            builder.withClaim(key, (Boolean) value);
+        }
+        if (value instanceof Long) {
+            builder.withClaim(key, (Long) value);
+        }
+        if (value instanceof Integer) {
+            builder.withClaim(key, (Integer) value);
+        }
+        if (value instanceof Double) {
+            builder.withClaim(key, (Double) value);
+        }
+        if (value instanceof Date) {
+            builder.withClaim(key, (Date) value);
+        }
+    }
+
+    public Cache<String, String> logoutCache() {
+        return SpringContextUtil.getBean(Keeper.class).getKeeperCache();
     }
 
     private Optional<DecodedJWT> parseToken(String token) {

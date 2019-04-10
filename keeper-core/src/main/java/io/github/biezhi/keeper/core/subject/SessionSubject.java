@@ -168,7 +168,7 @@ public class SessionSubject extends SimpleSubject {
             String sign = token.substring(token.lastIndexOf(".") + 1);
             String key  = String.format(LOGOUT_KEY, sign);
 
-            logoutCache().set(key, "1", expires);
+            keeperCache().set(key, "1", expires);
         }
     }
 
@@ -204,7 +204,7 @@ public class SessionSubject extends SimpleSubject {
 
         String sign = token.substring(token.lastIndexOf(".") + 1);
         String key  = String.format(LOGOUT_KEY, sign);
-        if (logoutCache().exists(key)) {
+        if (keeperCache().exists(key)) {
             return true;
         }
         try {
