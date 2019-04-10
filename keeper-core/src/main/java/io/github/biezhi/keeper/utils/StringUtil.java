@@ -2,8 +2,6 @@ package io.github.biezhi.keeper.utils;
 
 import lombok.experimental.UtilityClass;
 
-import java.util.Date;
-
 /**
  * StringUtil
  *
@@ -14,10 +12,14 @@ import java.util.Date;
 public class StringUtil {
 
     public boolean isEmpty(String value) {
-        if (null == value || value.trim().equals("")) {
+        if (null == value || "".equals(value.trim())) {
             return true;
         }
         return false;
+    }
+
+    public boolean isNotEmpty(String value) {
+        return null != value && "".equals(value.trim());
     }
 
 }

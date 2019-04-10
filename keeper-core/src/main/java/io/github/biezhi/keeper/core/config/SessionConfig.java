@@ -20,6 +20,8 @@ import lombok.Data;
 import java.time.Duration;
 
 /**
+ * SessionConfig
+ *
  * @author biezhi
  * @date 2019-04-08
  */
@@ -29,5 +31,9 @@ public class SessionConfig {
     private String   cookieName = "kid";
     private String   secret     = "keeper";
     private Duration renewExpires;
+    private String   domain;
+    private String   path       = "/";
+    private boolean  secure;
+    private boolean  isHttpOnly;
 
 }

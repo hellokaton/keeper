@@ -82,7 +82,13 @@ public class SessionSubject extends SimpleSubject {
             String kidValue = generateToken(token.username());
 
             Cookie cookie = new Cookie(config.getCookieName(), kidValue);
+            cookie.setPath(config.getPath());
+            cookie.setSecure(config.isSecure());
+            cookie.setHttpOnly(config.isHttpOnly());
             cookie.setMaxAge((int) config.getRenewExpires().toMillis() / 1000);
+            if (StringUtil.isNotEmpty(config.getDomain())) {
+                cookie.setDomain(config.getDomain());
+            }
             response.addCookie(cookie);
         }
 
@@ -150,7 +156,7 @@ public class SessionSubject extends SimpleSubject {
         }
         String token = cookie.getValue();
         cookie.setValue("");
-        cookie.setMaxAge(0);
+        cookie.setMaxAge(-1);
         response.addCookie(cookie);
 
         Date expiresAt = JWT.decode(token).getExpiresAt();
