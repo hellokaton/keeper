@@ -37,9 +37,29 @@ public interface JwtToken {
      */
     String getUsername(String token);
 
+    /**
+     * get the create time in seconds for token
+     *
+     * @param token
+     * @return
+     */
     long getCreateTime(String token);
 
+    /**
+     * get the timeout in seconds for token
+     *
+     * @param token
+     * @return
+     */
     long getExpireTime(String token);
+
+    /**
+     * get the latest timeout in seconds for a renewal
+     *
+     * @param token
+     * @return
+     */
+    long getRenewExpireTime(String token);
 
     /**
      * Verify that the incoming token has expired

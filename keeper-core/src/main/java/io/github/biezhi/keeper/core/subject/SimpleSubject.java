@@ -111,9 +111,13 @@ public abstract class SimpleSubject implements Subject {
     }
 
     protected void logoutResetCache(String token, String username) {
+        long renewExpireTime = jwtToken().getRenewExpireTime(token);
+
+        long seconds = renewExpireTime - System.currentTimeMillis() / 1000;
+
         // 重置 token 的登录时间，不能删除，因为 token 可能未过期
         String loginTokenKey = String.format("keeper:login:%s:%s", username, token.substring(token.lastIndexOf(".") + 1));
-        keeperCache().set(loginTokenKey, System.currentTimeMillis() / 1000 + "");
+        keeperCache().set(loginTokenKey, System.currentTimeMillis() / 1000 + "", seconds);
 
         String authenticInfoKey = String.format("keeper:authentic:%s", username);
         keeperCache().remove(authenticInfoKey);

@@ -169,7 +169,7 @@ public class SessionSubject extends SimpleSubject {
             return;
         }
 
-        // 删除当前 token 的登录记录
+        // 修改当前 token 的过期时间
         String loginTokenKey = String.format("keeper:login:%s:%s", username, token.substring(token.lastIndexOf(".") + 1));
         keeperCache().set(loginTokenKey, System.currentTimeMillis() / 1000 + "");
 
