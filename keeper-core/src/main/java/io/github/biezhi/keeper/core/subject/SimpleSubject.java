@@ -23,7 +23,6 @@ import io.github.biezhi.keeper.core.authc.*;
 import io.github.biezhi.keeper.core.authc.cipher.Cipher;
 import io.github.biezhi.keeper.core.cache.AuthorizeCache;
 import io.github.biezhi.keeper.core.cache.Cache;
-import io.github.biezhi.keeper.core.jwt.JwtToken;
 import io.github.biezhi.keeper.enums.Logical;
 import io.github.biezhi.keeper.exception.UnauthenticException;
 import io.github.biezhi.keeper.exception.WrongPasswordException;
