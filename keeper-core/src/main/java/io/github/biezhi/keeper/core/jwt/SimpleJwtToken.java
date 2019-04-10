@@ -130,12 +130,6 @@ public class SimpleJwtToken implements JwtToken {
             return true;
         }
 
-        String sign = token.substring(token.lastIndexOf(".") + 1);
-        String key  = String.format(LOGOUT_KEY, sign);
-        if (logoutCache().exists(key)) {
-            return true;
-        }
-
         Date expiresAt = this.parseToken(token)
                 .map(DecodedJWT::getExpiresAt)
                 .orElseThrow(() ->
@@ -148,12 +142,6 @@ public class SimpleJwtToken implements JwtToken {
     @Override
     public boolean canRenew(String token) {
         if (StringUtil.isEmpty(token)) {
-            return false;
-        }
-
-        String sign = token.substring(token.lastIndexOf(".") + 1);
-        String key  = String.format(LOGOUT_KEY, sign);
-        if (logoutCache().exists(key)) {
             return false;
         }
 
