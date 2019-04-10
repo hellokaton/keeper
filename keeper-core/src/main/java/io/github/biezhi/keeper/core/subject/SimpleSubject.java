@@ -27,6 +27,7 @@ import io.github.biezhi.keeper.core.jwt.JwtToken;
 import io.github.biezhi.keeper.enums.Logical;
 import io.github.biezhi.keeper.exception.UnauthenticException;
 import io.github.biezhi.keeper.exception.WrongPasswordException;
+import io.github.biezhi.keeper.utils.JsonUtil;
 import io.github.biezhi.keeper.utils.SpringContextUtil;
 import lombok.Data;
 
@@ -57,29 +58,6 @@ public abstract class SimpleSubject implements Subject {
         return SpringContextUtil.getBean(Keeper.class);
     }
 
-    protected void recordLogin(String username, String token) {
-        String loginTokenKey = String.format("keeper:login:%s:%s", username, token.substring(token.lastIndexOf(".") + 1));
-        long   createTime    = jwtToken().getCreateTime(token);
-        long   expireTime    = jwtToken().getExpireTime(token);
-
-        long seconds = expireTime - (System.currentTimeMillis() / 1000);
-        keeperCache().set(loginTokenKey, String.valueOf(createTime), seconds);
-    }
-
-    protected boolean tokenBeRevoked(String token, String username) {
-        String loginTokenKey = String.format("keeper:login:%s:%s", username, token.substring(token.lastIndexOf(".") + 1));
-        if (!keeperCache().exists(loginTokenKey)) {
-            return false;
-        }
-        long tokenCreateTime = jwtToken().getCreateTime(token);
-
-        Long time = keeperCache().get(loginTokenKey, Long.class);
-        if (tokenCreateTime == time) {
-            return false;
-        }
-        return true;
-    }
-
     @JsonIgnore
     @Override
     public AuthenticInfo login(AuthorToken token) {
@@ -97,18 +75,54 @@ public abstract class SimpleSubject implements Subject {
         return authenticInfo;
     }
 
-    protected void resetLoginTime(String token, String username) {
-        // 重置 token 的登录时间
+    protected void recordLogin(String username, String token) {
         String loginTokenKey = String.format("keeper:login:%s:%s", username, token.substring(token.lastIndexOf(".") + 1));
-        keeperCache().set(loginTokenKey, System.currentTimeMillis() / 1000 + "");
+        long   createTime    = jwtToken().getCreateTime(token);
+        long   expireTime    = jwtToken().getExpireTime(token);
+
+        long seconds = expireTime - (System.currentTimeMillis() / 1000);
+        keeperCache().set(loginTokenKey, String.valueOf(createTime), seconds);
     }
 
+    protected void recordLogin(AuthenticInfo authenticInfo, String token) {
+        String loginTokenKey = String.format("keeper:login:%s:%s", authenticInfo.username(), token.substring(token.lastIndexOf(".") + 1));
+        long   createTime    = jwtToken().getCreateTime(token);
+        long   expireTime    = jwtToken().getExpireTime(token);
+
+        long seconds = expireTime - (System.currentTimeMillis() / 1000);
+        keeperCache().set(loginTokenKey, String.valueOf(createTime), seconds);
+
+        String authenticInfoKey = String.format("keeper:authentic:%s", authenticInfo.username());
+        keeperCache().set(authenticInfoKey, JsonUtil.toJSONString(authenticInfo), seconds);
+    }
+
+    protected boolean tokenBeRevoked(String token, String username) {
+        String loginTokenKey = String.format("keeper:login:%s:%s", username, token.substring(token.lastIndexOf(".") + 1));
+        if (!keeperCache().exists(loginTokenKey)) {
+            return false;
+        }
+        long tokenCreateTime = jwtToken().getCreateTime(token);
+
+        Long time = keeperCache().get(loginTokenKey, Long.class);
+        if (tokenCreateTime == time) {
+            return false;
+        }
+        return true;
+    }
+
+    protected void logoutResetCache(String token, String username) {
+        // 重置 token 的登录时间，不能删除，因为 token 可能未过期
+        String loginTokenKey = String.format("keeper:login:%s:%s", username, token.substring(token.lastIndexOf(".") + 1));
+        keeperCache().set(loginTokenKey, System.currentTimeMillis() / 1000 + "");
+
+        String authenticInfoKey = String.format("keeper:authentic:%s", username);
+        keeperCache().remove(authenticInfoKey);
+    }
 
     protected void removeLoginToken(String username, String token) {
         String loginTokenKey = String.format("keeper:login:%s:%s", username, token.substring(token.lastIndexOf(".") + 1));
         keeperCache().remove(loginTokenKey);
     }
-
 
     @JsonIgnore
     @Override

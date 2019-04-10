@@ -93,7 +93,7 @@ public class SessionSubject extends SimpleSubject {
         }
         response.addCookie(cookie);
 
-        // 存储登录状态，处理注销、重置密码、token 过期等问题
+        // 存储登录状态，处理注销
         this.recordLogin(token.username(), cookieToken);
 
         return authenticInfo;

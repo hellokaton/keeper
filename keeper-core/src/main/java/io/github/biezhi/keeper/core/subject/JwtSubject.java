@@ -68,14 +68,10 @@ public class JwtSubject extends SimpleSubject {
 
         String jwtToken = jwtToken().create(token.username(), authenticInfo.claims());
 
-        // 存储登录状态，处理注销、重置密码、token 过期等问题
-        this.recordLogin(token.username(), jwtToken);
-
+        // 存储登录状态，处理注销
+        this.recordLogin(authenticInfo, jwtToken);
         authenticInfo.setPayload(jwtToken);
 
-        // 存储登录成功的信息
-        String authenticInfoKey = String.format("keeper:authentic:%s", token.username());
-        keeperCache().set(authenticInfoKey, JsonUtil.toJSONString(authenticInfo));
         return authenticInfo;
     }
 
@@ -87,7 +83,7 @@ public class JwtSubject extends SimpleSubject {
         if (StringUtil.isEmpty(username)) {
             return;
         }
-        this.resetLoginTime(token, username);
+        this.logoutResetCache(token, username);
     }
 
 
@@ -131,14 +127,11 @@ public class JwtSubject extends SimpleSubject {
 
         AuthenticInfo authenticInfo = authentication().doAuthentic(() -> username);
 
-        String authenticInfoKey = String.format("keeper:authentic:%s", username);
-        keeperCache().set(authenticInfoKey, JsonUtil.toJSONString(authenticInfo));
-
         String newToken = jwtToken().refresh(username, authenticInfo.claims());
         log.info("renew success, token: {}", newToken);
 
-        // 存储登录状态，处理注销、重置密码、token 过期等问题
-        this.recordLogin(username, newToken);
+        // 存储登录状态，处理注销
+        this.recordLogin(authenticInfo, newToken);
         return true;
     }
 
