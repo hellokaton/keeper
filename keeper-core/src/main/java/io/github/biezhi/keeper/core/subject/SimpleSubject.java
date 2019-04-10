@@ -23,6 +23,7 @@ import io.github.biezhi.keeper.core.authc.*;
 import io.github.biezhi.keeper.core.authc.cipher.Cipher;
 import io.github.biezhi.keeper.core.cache.AuthorizeCache;
 import io.github.biezhi.keeper.core.cache.Cache;
+import io.github.biezhi.keeper.core.jwt.JwtToken;
 import io.github.biezhi.keeper.enums.Logical;
 import io.github.biezhi.keeper.exception.UnauthenticException;
 import io.github.biezhi.keeper.exception.WrongPasswordException;
@@ -44,12 +45,39 @@ public abstract class SimpleSubject implements Subject {
         return SpringContextUtil.getBean(Authentication.class);
     }
 
+    protected JwtToken jwtToken() {
+        return SpringContextUtil.getBean(JwtToken.class);
+    }
+
     protected Cache<String, String> keeperCache() {
         return keeper().getKeeperCache();
     }
 
     protected Keeper keeper() {
         return SpringContextUtil.getBean(Keeper.class);
+    }
+
+    protected void recordLogin(String username, String token) {
+        String loginTokenKey = String.format("keeper:login:%s:%s", username, token.substring(token.lastIndexOf(".") + 1));
+        long   createTime    = jwtToken().getCreateTime(token);
+        long   expireTime    = jwtToken().getExpireTime(token);
+
+        long seconds = expireTime - (System.currentTimeMillis() / 1000);
+        keeperCache().set(loginTokenKey, String.valueOf(createTime), seconds);
+    }
+
+    protected boolean tokenBeRevoked(String token, String username) {
+        String loginTokenKey = String.format("keeper:login:%s:%s", username, token.substring(token.lastIndexOf(".") + 1));
+        if (!keeperCache().exists(loginTokenKey)) {
+            return false;
+        }
+        long tokenCreateTime = jwtToken().getCreateTime(token);
+
+        Long time = keeperCache().get(loginTokenKey, Long.class);
+        if (tokenCreateTime == time) {
+            return false;
+        }
+        return true;
     }
 
     @JsonIgnore
@@ -74,7 +102,6 @@ public abstract class SimpleSubject implements Subject {
         String loginTokenKey = String.format("keeper:login:%s:%s", username, token.substring(token.lastIndexOf(".") + 1));
         keeperCache().set(loginTokenKey, System.currentTimeMillis() / 1000 + "");
     }
-
 
 
     protected void removeLoginToken(String username, String token) {

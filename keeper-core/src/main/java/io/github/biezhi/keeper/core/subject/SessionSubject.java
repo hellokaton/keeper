@@ -39,7 +39,6 @@ import javax.servlet.http.HttpSession;
 import java.util.Date;
 
 import static io.github.biezhi.keeper.keeperConst.KEEPER_SESSION_KEY;
-import static io.github.biezhi.keeper.keeperConst.LOGOUT_KEY;
 
 /**
  * SessionSubject
@@ -76,21 +75,26 @@ public class SessionSubject extends SimpleSubject {
 
         // remember me
         SessionConfig config = sessionConfig();
-        if (token.remember() && null != config.getRenewExpires()) {
-            HttpServletResponse response = WebUtil.currentResponse();
-
-            String kidValue = generateToken(token.username());
-
-            Cookie cookie = new Cookie(config.getCookieName(), kidValue);
-            cookie.setPath(config.getPath());
-            cookie.setSecure(config.isSecure());
-            cookie.setHttpOnly(config.isHttpOnly());
-            cookie.setMaxAge((int) config.getRenewExpires().toMillis() / 1000);
-            if (StringUtil.isNotEmpty(config.getDomain())) {
-                cookie.setDomain(config.getDomain());
-            }
-            response.addCookie(cookie);
+        if (!token.remember() || null == config.getRenewExpires()) {
+            return authenticInfo;
         }
+
+        HttpServletResponse response = WebUtil.currentResponse();
+
+        String cookieToken = generateToken(token.username());
+
+        Cookie cookie = new Cookie(config.getCookieName(), cookieToken);
+        cookie.setPath(config.getPath());
+        cookie.setSecure(config.isSecure());
+        cookie.setHttpOnly(config.isHttpOnly());
+        cookie.setMaxAge((int) config.getRenewExpires().toMillis() / 1000);
+        if (StringUtil.isNotEmpty(config.getDomain())) {
+            cookie.setDomain(config.getDomain());
+        }
+        response.addCookie(cookie);
+
+        // 存储登录状态，处理注销、重置密码、token 过期等问题
+        this.recordLogin(token.username(), cookieToken);
 
         return authenticInfo;
     }
@@ -106,6 +110,7 @@ public class SessionSubject extends SimpleSubject {
         if (null != attribute) {
             return true;
         }
+
         if (config.getRenewExpires() != null) {
             throw ExpiredException.build();
         }
@@ -130,8 +135,8 @@ public class SessionSubject extends SimpleSubject {
             return false;
         }
 
-        // 判断是否是已经失效的 token
-        if (isExpired(token)) {
+        // token 被撤销，如注销
+        if (this.tokenBeRevoked(token, username)) {
             return false;
         }
 
@@ -193,24 +198,6 @@ public class SessionSubject extends SimpleSubject {
                 .withExpiresAt(DateUtil.plus(config.getRenewExpires().toMillis()));
 
         return builder.sign(Algorithm.HMAC256(config.getSecret()));
-    }
-
-    private boolean isExpired(String token) {
-        if (StringUtil.isEmpty(token)) {
-            return true;
-        }
-
-        String sign = token.substring(token.lastIndexOf(".") + 1);
-        String key  = String.format(LOGOUT_KEY, sign);
-        if (keeperCache().exists(key)) {
-            return true;
-        }
-        try {
-            Date expiresAt = JWT.decode(token).getExpiresAt();
-            return expiresAt.before(new Date());
-        } catch (Exception e) {
-            return true;
-        }
     }
 
     private String getUsername(String token) {

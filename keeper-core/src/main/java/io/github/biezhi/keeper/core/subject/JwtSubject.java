@@ -20,16 +20,16 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.github.biezhi.keeper.core.authc.AuthenticInfo;
 import io.github.biezhi.keeper.core.authc.AuthorToken;
 import io.github.biezhi.keeper.core.authc.impl.SimpleAuthenticInfo;
-import io.github.biezhi.keeper.core.jwt.JwtToken;
 import io.github.biezhi.keeper.exception.ExpiredException;
 import io.github.biezhi.keeper.utils.JsonUtil;
-import io.github.biezhi.keeper.utils.SpringContextUtil;
 import io.github.biezhi.keeper.utils.StringUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 
 /**
+ * JwtSubject
+ *
  * @author biezhi
  * @date 2019-04-05
  */
@@ -38,10 +38,6 @@ import lombok.extern.slf4j.Slf4j;
 @JsonIgnoreProperties
 @EqualsAndHashCode(callSuper = true)
 public class JwtSubject extends SimpleSubject {
-
-    private JwtToken jwtToken() {
-        return SpringContextUtil.getBean(JwtToken.class);
-    }
 
     @Override
     public AuthenticInfo authenticInfo() {
@@ -108,13 +104,9 @@ public class JwtSubject extends SimpleSubject {
             return false;
         }
 
-        String loginTokenKey = String.format("keeper:login:%s:%s", username, token.substring(token.lastIndexOf(".") + 1));
-        if (keeperCache().exists(loginTokenKey)) {
-            long tokenCreateTime = jwtToken().getCreateTime(token);
-            Long time            = keeperCache().get(loginTokenKey, Long.class);
-            if (tokenCreateTime != time) {
-                return false;
-            }
+        // token 被撤销，如注销
+        if (this.tokenBeRevoked(token, username)) {
+            return false;
         }
 
         boolean expired = jwtToken().isExpired(token);
@@ -148,15 +140,6 @@ public class JwtSubject extends SimpleSubject {
         // 存储登录状态，处理注销、重置密码、token 过期等问题
         this.recordLogin(username, newToken);
         return true;
-    }
-
-    protected void recordLogin(String username, String token) {
-        String loginTokenKey = String.format("keeper:login:%s:%s", username, token.substring(token.lastIndexOf(".") + 1));
-        long   createTime    = jwtToken().getCreateTime(token);
-        long   expireTime    = jwtToken().getExpireTime(token);
-
-        long seconds = expireTime - (System.currentTimeMillis() / 1000);
-        keeperCache().set(loginTokenKey, String.valueOf(createTime), seconds);
     }
 
 }
