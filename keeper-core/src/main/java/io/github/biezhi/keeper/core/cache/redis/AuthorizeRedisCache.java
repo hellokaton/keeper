@@ -75,7 +75,8 @@ public class AuthorizeRedisCache extends RedisCache<AuthorizeInfo> implements Au
 
     @Override
     public void set(String username, AuthorizeInfo authorizeInfo) {
-        super.set(username, authorizeInfo, expiresTime);
+        long expires = expiresTime.toMillis() - System.currentTimeMillis();
+        super.set(username, authorizeInfo, expires);
     }
 
 }

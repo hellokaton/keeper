@@ -6,7 +6,7 @@ import io.github.biezhi.keeper.Keeper;
 import io.github.biezhi.keeper.core.cache.redis.AuthenticRedisCache;
 import io.github.biezhi.keeper.core.cache.redis.AuthorizeRedisCache;
 import io.github.biezhi.keeper.core.cache.redis.LogoutRedisCache;
-import io.github.biezhi.keeper.core.web.filter.JwtAuthenticFilter;
+import io.github.biezhi.keeper.core.web.filter.AuthenticFilter;
 import io.github.biezhi.keeper.enums.SubjectType;
 import io.github.biezhi.keeper.utils.WebUtil;
 import org.springframework.context.annotation.Bean;
@@ -38,8 +38,8 @@ public class KeeperBeanConfig extends WebMvcConfigurationSupport {
     }
 
     @Bean
-    public JwtAuthenticFilter jwtAuthenticFilter() {
-        return new JwtAuthenticFilter() {
+    public AuthenticFilter authenticFilter() {
+        return new AuthenticFilter() {
 
             @Override
             protected void initFilterBean() {

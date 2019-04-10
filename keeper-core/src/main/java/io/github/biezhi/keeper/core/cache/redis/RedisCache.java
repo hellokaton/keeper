@@ -5,7 +5,6 @@ import io.github.biezhi.keeper.exception.KeeperException;
 import io.github.biezhi.keeper.utils.JsonUtil;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
-import java.time.Duration;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -31,11 +30,11 @@ public class RedisCache<V> implements Cache<String, V> {
     }
 
     @Override
-    public void set(String key, V value, Duration expiresTime) {
+    public void set(String key, V value, long millis) {
         String json = JsonUtil.toJSONString(value);
         stringRedisTemplate.opsForValue().set(prefix + key, json);
-        if (null != expiresTime && expiresTime.toMillis() > 0) {
-            stringRedisTemplate.expire(prefix + key, expiresTime.toMillis(), TimeUnit.MILLISECONDS);
+        if (millis > 0) {
+            stringRedisTemplate.expire(prefix + key, millis, TimeUnit.MILLISECONDS);
         }
     }
 

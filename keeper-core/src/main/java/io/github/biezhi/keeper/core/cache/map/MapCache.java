@@ -34,7 +34,7 @@ public class MapCache<K, V> implements Cache<K, V> {
 
     @Deprecated
     @Override
-    public void set(K key, V value, Duration expiresTime) {
+    public void set(K key, V value, long millis) {
         cache.putIfAbsent(key, value);
     }
 

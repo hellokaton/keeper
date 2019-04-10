@@ -16,6 +16,7 @@
 package io.github.biezhi.keeper.core.jwt;
 
 import java.time.Duration;
+import java.util.Map;
 
 public interface JwtToken {
 
@@ -23,9 +24,10 @@ public interface JwtToken {
      * Create a token that sets the username to subject
      *
      * @param username unique identity of the user currently logged in
+     * @param claims   user additional information, please do not store password type information
      * @return return a new JWT token
      */
-    String create(String username);
+    String create(String username, Map<String, Object> claims);
 
     /**
      * Parse the username based on the incoming JWT token
@@ -61,7 +63,8 @@ public interface JwtToken {
      * the client should replace this token with the latest accessible JWT token
      *
      * @param username unique identity of the user currently logged in
+     * @param claims   user additional information, please do not store password type information
      */
-    String refresh(String username);
+    String refresh(String username, Map<String, Object> claims);
 
 }

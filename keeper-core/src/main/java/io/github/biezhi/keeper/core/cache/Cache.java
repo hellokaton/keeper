@@ -15,7 +15,6 @@
  */
 package io.github.biezhi.keeper.core.cache;
 
-import java.time.Duration;
 import java.util.Set;
 
 /**
@@ -28,7 +27,7 @@ public interface Cache<K, V> {
 
     void set(K key, V value);
 
-    void set(K key, V value, Duration expiresTime);
+    void set(K key, V value, long millis);
 
     V get(K key);
 

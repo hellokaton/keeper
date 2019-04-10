@@ -34,6 +34,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
+import java.util.Map;
 import java.util.Optional;
 
 import static io.github.biezhi.keeper.keeperConst.LOGOUT_KEY;
@@ -67,7 +68,7 @@ public class SimpleJwtToken implements JwtToken {
     }
 
     @Override
-    public String create(String username) {
+    public String create(String username, Map<String, Object> claims) {
         JWTCreator.Builder builder = JWT.create()
                 .withSubject(username)
                 .withIssuedAt(new Date())
@@ -79,7 +80,38 @@ public class SimpleJwtToken implements JwtToken {
             builder.withClaim(REFRESH_EXPIRES_AT,
                     DateUtil.plus(config.getRenewExpires().toMillis()));
         }
+
+        if (null != claims && !claims.isEmpty()) {
+            claims.forEach((key, value) -> {
+                addClaim(builder, key, value);
+            });
+        }
+
         return builder.sign(Algorithm.HMAC256(config.getSecret()));
+    }
+
+    private void addClaim(JWTCreator.Builder builder, String key, Object value) {
+        if (null == key || null == value) {
+            return;
+        }
+        if (value instanceof String) {
+            builder.withClaim(key, (String) value);
+        }
+        if (value instanceof Boolean) {
+            builder.withClaim(key, (Boolean) value);
+        }
+        if (value instanceof Long) {
+            builder.withClaim(key, (Long) value);
+        }
+        if (value instanceof Integer) {
+            builder.withClaim(key, (Integer) value);
+        }
+        if (value instanceof Double) {
+            builder.withClaim(key, (Double) value);
+        }
+        if (value instanceof Date) {
+            builder.withClaim(key, (Date) value);
+        }
     }
 
     @Override
@@ -168,7 +200,7 @@ public class SimpleJwtToken implements JwtToken {
     }
 
     @Override
-    public String refresh(String username) {
+    public String refresh(String username, Map<String, Object> claims) {
         HttpServletRequest  request  = WebUtil.currentRequest();
         HttpServletResponse response = WebUtil.currentResponse();
 
@@ -176,7 +208,7 @@ public class SimpleJwtToken implements JwtToken {
             return null;
         }
 
-        String token = create(username);
+        String token = create(username, claims);
         request.setAttribute(NEW_TOKEN, token);
         response.setHeader(config.getHeader(), token);
         return token;

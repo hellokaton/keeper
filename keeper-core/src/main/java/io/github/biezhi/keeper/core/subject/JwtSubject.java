@@ -69,7 +69,7 @@ public class JwtSubject extends SimpleSubject {
     public AuthenticInfo login(AuthorToken token) {
         SimpleAuthenticInfo authenticInfo = (SimpleAuthenticInfo) super.login(token);
 
-        String jwtToken = jwtToken().create(token.username());
+        String jwtToken = jwtToken().create(token.username(), authenticInfo.claims());
         authenticInfo.setPayload(jwtToken);
 
         authenticCache().set(token.username(), authenticInfo);
@@ -84,8 +84,10 @@ public class JwtSubject extends SimpleSubject {
         if (StringUtil.isEmpty(username)) {
             return;
         }
-        Duration expire = jwtToken().getRenewExpire(token);
-        if (null != expire && expire.toMillis() > 0) {
+        Duration renewExpire = jwtToken().getRenewExpire(token);
+        if (null != renewExpire && renewExpire.toMillis() > System.currentTimeMillis()) {
+            long expire = renewExpire.toMillis() - System.currentTimeMillis();
+
             String sign = token.substring(token.lastIndexOf(".") + 1);
             String key  = String.format(LOGOUT_KEY, sign);
             logoutCache().set(key, "1", expire);
@@ -124,11 +126,12 @@ public class JwtSubject extends SimpleSubject {
         if (!canRefresh) {
             return false;
         }
-        String newToken = jwtToken().refresh(username);
-        log.info("renew success, token: {}", newToken);
 
         AuthenticInfo authenticInfo = authentication().doAuthentic(() -> username);
         authenticCache().set(username, authenticInfo);
+
+        String newToken = jwtToken().refresh(username, authenticInfo.claims());
+        log.info("renew success, token: {}", newToken);
 
         return null != newToken;
     }

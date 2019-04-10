@@ -2,7 +2,7 @@ package com.example.keeper.config;
 
 import com.example.keeper.model.Response;
 import io.github.biezhi.keeper.Keeper;
-import io.github.biezhi.keeper.core.web.filter.JwtAuthenticFilter;
+import io.github.biezhi.keeper.core.web.filter.AuthenticFilter;
 import io.github.biezhi.keeper.enums.SubjectType;
 import io.github.biezhi.keeper.utils.WebUtil;
 import org.springframework.context.annotation.Bean;
@@ -26,8 +26,8 @@ public class KeeperBeanConfig extends WebMvcConfigurationSupport {
     }
 
     @Bean
-    public JwtAuthenticFilter jwtAuthenticFilter() {
-        return new JwtAuthenticFilter() {
+    public AuthenticFilter authenticFilter() {
+        return new AuthenticFilter() {
 
             @Override
             protected void initFilterBean() {
@@ -47,7 +47,7 @@ public class KeeperBeanConfig extends WebMvcConfigurationSupport {
 
     @Bean
     @Primary
-    public Keeper initKeeper(Keeper keeper){
+    public Keeper initKeeper(Keeper keeper) {
         keeper.setSubjectType(SubjectType.JWT);
         return keeper;
     }

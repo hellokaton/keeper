@@ -36,7 +36,6 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.time.Duration;
 import java.util.Date;
 
 import static io.github.biezhi.keeper.keeperConst.KEEPER_SESSION_KEY;
@@ -158,11 +157,13 @@ public class SessionSubject extends SimpleSubject {
         if (null == expiresAt || expiresAt.before(new Date())) {
             return;
         }
-        long expires = expiresAt.toInstant().getEpochSecond() - System.currentTimeMillis() / 1000;
+        long expires = expiresAt.toInstant().toEpochMilli() - System.currentTimeMillis();
+        if (expires > 0) {
+            String sign = token.substring(token.lastIndexOf(".") + 1);
+            String key  = String.format(LOGOUT_KEY, sign);
 
-        String sign = token.substring(token.lastIndexOf(".") + 1);
-        String key  = String.format(LOGOUT_KEY, sign);
-        logoutCache().set(key, "1", Duration.ofSeconds(expires));
+            logoutCache().set(key, "1", expires);
+        }
     }
 
     private SessionConfig sessionConfig() {
