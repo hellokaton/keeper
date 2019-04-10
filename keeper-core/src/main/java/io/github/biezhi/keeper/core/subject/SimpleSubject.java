@@ -69,6 +69,20 @@ public abstract class SimpleSubject implements Subject {
         return authenticInfo;
     }
 
+    protected void resetLoginTime(String token, String username) {
+        // 重置 token 的登录时间
+        String loginTokenKey = String.format("keeper:login:%s:%s", username, token.substring(token.lastIndexOf(".") + 1));
+        keeperCache().set(loginTokenKey, System.currentTimeMillis() / 1000 + "");
+    }
+
+
+
+    protected void removeLoginToken(String username, String token) {
+        String loginTokenKey = String.format("keeper:login:%s:%s", username, token.substring(token.lastIndexOf(".") + 1));
+        keeperCache().remove(loginTokenKey);
+    }
+
+
     @JsonIgnore
     @Override
     public boolean hasPermissions(Roles roleAnnotation, Permissions permAnnotation) {

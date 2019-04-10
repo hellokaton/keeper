@@ -159,17 +159,15 @@ public class SessionSubject extends SimpleSubject {
         cookie.setMaxAge(-1);
         response.addCookie(cookie);
 
-        Date expiresAt = JWT.decode(token).getExpiresAt();
-        if (null == expiresAt || expiresAt.before(new Date())) {
+        String username = getUsername(token);
+        if (StringUtil.isEmpty(username)) {
             return;
         }
-        long expires = expiresAt.toInstant().toEpochMilli() - System.currentTimeMillis();
-        if (expires > 0) {
-            String sign = token.substring(token.lastIndexOf(".") + 1);
-            String key  = String.format(LOGOUT_KEY, sign);
 
-            keeperCache().set(key, "1", expires);
-        }
+        // 删除当前 token 的登录记录
+        String loginTokenKey = String.format("keeper:login:%s:%s", username, token.substring(token.lastIndexOf(".") + 1));
+        keeperCache().set(loginTokenKey, System.currentTimeMillis() / 1000 + "");
+
     }
 
     private SessionConfig sessionConfig() {

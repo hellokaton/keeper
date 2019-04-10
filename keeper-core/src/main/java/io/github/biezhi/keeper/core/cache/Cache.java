@@ -28,7 +28,7 @@ public interface Cache<K, V> {
 
     void set(K key, V value);
 
-    void set(K key, V value, long millis);
+    void set(K key, V value, long seconds);
 
     <T> T get(K key, Class<T> type);
 

@@ -39,6 +39,8 @@ public interface JwtToken {
 
     long getCreateTime(String token);
 
+    long getExpireTime(String token);
+
     /**
      * Verify that the incoming token has expired
      *
@@ -58,7 +60,6 @@ public interface JwtToken {
      */
     String getAuthToken();
 
-    Duration getRenewExpire(String token);
 
     /**
      * Refreshing the current user's JWT token writes a new token to the header of the response.

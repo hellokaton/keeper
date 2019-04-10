@@ -37,15 +37,15 @@ public class RedisCache<V> implements Cache<String, V> {
     }
 
     @Override
-    public void set(String key, V value, long millis) {
+    public void set(String key, V value, long seconds) {
         if (value instanceof String) {
             stringRedisTemplate.opsForValue().set(prefix + key, value.toString());
         } else {
             String json = JsonUtil.toJSONString(value);
             stringRedisTemplate.opsForValue().set(prefix + key, json);
         }
-        if (millis > 0) {
-            stringRedisTemplate.expire(prefix + key, millis, TimeUnit.MILLISECONDS);
+        if (seconds > 0) {
+            stringRedisTemplate.expire(prefix + key, seconds, TimeUnit.SECONDS);
         }
     }
 

@@ -113,6 +113,18 @@ public class SimpleJwtToken implements JwtToken {
     }
 
     @Override
+    public long getExpireTime(String token) {
+        if (StringUtil.isEmpty(token)) {
+            return 0L;
+        }
+        return this.parseToken(token)
+                .map(DecodedJWT::getExpiresAt)
+                .map(Date::getTime)
+                .map(time -> time / 1000)
+                .orElse(0L);
+    }
+
+    @Override
     public boolean isExpired(String token) {
         if (StringUtil.isEmpty(token)) {
             return true;
@@ -169,18 +181,6 @@ public class SimpleJwtToken implements JwtToken {
             return null;
         }
         return authorization.replace(config.getTokenHead(), "");
-    }
-
-    @Override
-    public Duration getRenewExpire(String token) {
-        if (StringUtil.isEmpty(token)) {
-            return Duration.ofMillis(0);
-        }
-        return this.parseToken(token)
-                .map(decode -> decode.getClaim(REFRESH_EXPIRES_AT))
-                .map(Claim::asLong)
-                .map(Duration::ofSeconds)
-                .orElse(Duration.ofMillis(0));
     }
 
     @Override

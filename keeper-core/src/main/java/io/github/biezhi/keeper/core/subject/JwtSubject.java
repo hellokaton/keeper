@@ -91,11 +91,9 @@ public class JwtSubject extends SimpleSubject {
         if (StringUtil.isEmpty(username)) {
             return;
         }
-
-        // 删除当前 token 的登录记录
-        String loginTokenKey = String.format("keeper:login:%s:%s", username, token.substring(token.lastIndexOf(".") + 1));
-        keeperCache().set(loginTokenKey, System.currentTimeMillis() / 1000 + "");
+        this.resetLoginTime(token, username);
     }
+
 
     @JsonIgnore
     @Override
@@ -152,15 +150,13 @@ public class JwtSubject extends SimpleSubject {
         return true;
     }
 
-    private void recordLogin(String username, String token) {
+    protected void recordLogin(String username, String token) {
         String loginTokenKey = String.format("keeper:login:%s:%s", username, token.substring(token.lastIndexOf(".") + 1));
         long   createTime    = jwtToken().getCreateTime(token);
-        keeperCache().set(loginTokenKey, createTime + "");
-    }
+        long   expireTime    = jwtToken().getExpireTime(token);
 
-    private void removeLoginToken(String username, String token) {
-        String loginTokenKey = String.format("keeper:login:%s:%s", username, token.substring(token.lastIndexOf(".") + 1));
-        keeperCache().remove(loginTokenKey);
+        long seconds = expireTime - (System.currentTimeMillis() / 1000);
+        keeperCache().set(loginTokenKey, String.valueOf(createTime), seconds);
     }
 
 }
