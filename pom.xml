@@ -7,7 +7,7 @@
     <groupId>io.github.biezhi</groupId>
     <artifactId>keeper</artifactId>
     <packaging>pom</packaging>
-    <version>0.0.1-alpha</version>
+    <version>1.0-SNAPSHOT</version>
     <name>keeper</name>
     <url>https://biezhi.github.io/keeper</url>
     <description>keeper</description>
@@ -44,8 +44,8 @@
         <servlet-api.version>3.1.0</servlet-api.version>
         <jwt.version>3.4.0</jwt.version>
         <lombok.version>1.18.6</lombok.version>
-        <keeper-core.version>0.0.1-alpha</keeper-core.version>
-        <keeper-spring-boot-web.version>0.0.1-alpha</keeper-spring-boot-web.version>
+        <keeper-core.version>0.0.1-beta</keeper-core.version>
+        <keeper-spring-boot-web.version>0.0.1-beta</keeper-spring-boot-web.version>
     </properties>
 
     <dependencyManagement>
