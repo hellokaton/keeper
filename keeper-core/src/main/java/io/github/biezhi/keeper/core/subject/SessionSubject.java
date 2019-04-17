@@ -38,6 +38,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.util.Date;
 
+import static io.github.biezhi.keeper.keeperConst.KEEPER_LOGIN_KEY;
 import static io.github.biezhi.keeper.keeperConst.KEEPER_SESSION_KEY;
 
 /**
@@ -170,7 +171,7 @@ public class SessionSubject extends SimpleSubject {
         }
 
         // 修改当前 token 的过期时间
-        String loginTokenKey = String.format("keeper:login:%s:%s", username, token.substring(token.lastIndexOf(".") + 1));
+        String loginTokenKey = String.format(KEEPER_LOGIN_KEY, username, token.substring(token.lastIndexOf(".") + 1));
         keeperCache().set(loginTokenKey, System.currentTimeMillis() / 1000 + "");
 
     }

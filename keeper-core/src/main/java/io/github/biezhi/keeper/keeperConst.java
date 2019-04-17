@@ -23,6 +23,9 @@ public interface keeperConst {
 
     String KEEPER_SESSION_KEY = "KEEPER_USER_TOKEN";
 
+    String KEEPER_LOGIN_KEY = "keeper:login:%s:%s";
+    String KEEPER_AUTHENTIC_KEY = "keeper:authentic:%s";
+
     String ERROR_MESSAGE_NOT_PERMISSION = "You don't have permission to access this resource!";
     String ERROR_MESSAGE_NOT_LOGIN      = "Please isLogin and take action!";
     String ERROR_MESSAGE_EXPIRED        = "Your account has expired!";

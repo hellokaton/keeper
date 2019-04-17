@@ -35,6 +35,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+import static io.github.biezhi.keeper.keeperConst.KEEPER_AUTHENTIC_KEY;
+import static io.github.biezhi.keeper.keeperConst.KEEPER_LOGIN_KEY;
+
 /**
  * @author biezhi
  * @date 2019-04-05
@@ -76,7 +79,7 @@ public abstract class SimpleSubject implements Subject {
     }
 
     protected void recordLogin(String username, String token) {
-        String loginTokenKey = String.format("keeper:login:%s:%s", username, token.substring(token.lastIndexOf(".") + 1));
+        String loginTokenKey = String.format(KEEPER_LOGIN_KEY, username, token.substring(token.lastIndexOf(".") + 1));
         long   createTime    = jwtToken().getCreateTime(token);
         long   expireTime    = jwtToken().getExpireTime(token);
 
@@ -85,19 +88,19 @@ public abstract class SimpleSubject implements Subject {
     }
 
     protected void recordLogin(AuthenticInfo authenticInfo, String token) {
-        String loginTokenKey = String.format("keeper:login:%s:%s", authenticInfo.username(), token.substring(token.lastIndexOf(".") + 1));
+        String loginTokenKey = String.format(KEEPER_LOGIN_KEY, authenticInfo.username(), token.substring(token.lastIndexOf(".") + 1));
         long   createTime    = jwtToken().getCreateTime(token);
         long   expireTime    = jwtToken().getExpireTime(token);
 
         long seconds = expireTime - (System.currentTimeMillis() / 1000);
         keeperCache().set(loginTokenKey, String.valueOf(createTime), seconds);
 
-        String authenticInfoKey = String.format("keeper:authentic:%s", authenticInfo.username());
+        String authenticInfoKey = String.format(KEEPER_AUTHENTIC_KEY, authenticInfo.username());
         keeperCache().set(authenticInfoKey, JsonUtil.toJSONString(authenticInfo), seconds);
     }
 
     protected boolean tokenBeRevoked(String token, String username) {
-        String loginTokenKey = String.format("keeper:login:%s:%s", username, token.substring(token.lastIndexOf(".") + 1));
+        String loginTokenKey = String.format(KEEPER_LOGIN_KEY, username, token.substring(token.lastIndexOf(".") + 1));
         if (!keeperCache().exists(loginTokenKey)) {
             return false;
         }
@@ -116,15 +119,15 @@ public abstract class SimpleSubject implements Subject {
         long seconds = renewExpireTime - System.currentTimeMillis() / 1000;
 
         // 重置 token 的登录时间，不能删除，因为 token 可能未过期
-        String loginTokenKey = String.format("keeper:login:%s:%s", username, token.substring(token.lastIndexOf(".") + 1));
+        String loginTokenKey = String.format(KEEPER_LOGIN_KEY, username, token.substring(token.lastIndexOf(".") + 1));
         keeperCache().set(loginTokenKey, System.currentTimeMillis() / 1000 + "", seconds);
 
-        String authenticInfoKey = String.format("keeper:authentic:%s", username);
+        String authenticInfoKey = String.format(KEEPER_AUTHENTIC_KEY, username);
         keeperCache().remove(authenticInfoKey);
     }
 
     protected void removeLoginToken(String username, String token) {
-        String loginTokenKey = String.format("keeper:login:%s:%s", username, token.substring(token.lastIndexOf(".") + 1));
+        String loginTokenKey = String.format(KEEPER_LOGIN_KEY, username, token.substring(token.lastIndexOf(".") + 1));
         keeperCache().remove(loginTokenKey);
     }
 

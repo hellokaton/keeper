@@ -27,6 +27,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 
+import static io.github.biezhi.keeper.keeperConst.KEEPER_AUTHENTIC_KEY;
+
 /**
  * JwtSubject
  *
@@ -47,7 +49,7 @@ public class JwtSubject extends SimpleSubject {
         String token    = jwtToken().getAuthToken();
         String username = jwtToken().getUsername(token);
 
-        String authenticInfoKey = String.format("keeper:authentic:%s", username);
+        String authenticInfoKey = String.format(KEEPER_AUTHENTIC_KEY, username);
 
         if (keeperCache().exists(authenticInfoKey)) {
             return keeperCache().get(authenticInfoKey, SimpleAuthenticInfo.class);
@@ -128,7 +130,7 @@ public class JwtSubject extends SimpleSubject {
         AuthenticInfo authenticInfo = authentication().doAuthentic(() -> username);
 
         String newToken = jwtToken().refresh(username, authenticInfo.claims());
-        log.info("renew success, token: {}", newToken);
+        log.debug("renew success, token: {}", newToken);
 
         // 存储登录状态，处理注销
         this.recordLogin(authenticInfo, newToken);
