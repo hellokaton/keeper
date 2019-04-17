@@ -20,6 +20,7 @@ import io.github.biezhi.keeper.core.subject.Subject;
 import io.github.biezhi.keeper.exception.ExpiredException;
 import io.github.biezhi.keeper.exception.UnauthorizedException;
 import io.github.biezhi.keeper.utils.WebUtil;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.ObjectUtils;
@@ -47,6 +48,7 @@ public class AuthenticFilter extends OncePerRequestFilter {
     private final List<String> includePatterns = new ArrayList<>();
     private final List<String> excludePatterns = new ArrayList<>();
 
+    @Setter
     private PathMatcher pathMatcher = new AntPathMatcher();
 
     public AuthenticFilter addPathPatterns(String... urls) {
